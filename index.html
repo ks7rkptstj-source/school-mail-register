@@ -13,40 +13,31 @@
  --text:#26382e;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);
- font-family:Tahoma,Arial,sans-serif}
-header{background:linear-gradient(120deg,#145b3d,#247b70);
- color:white;text-align:center;padding:22px 12px}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Tahoma,Arial,sans-serif}
+header{background:linear-gradient(120deg,#145b3d,#247b70);color:white;text-align:center;padding:22px 12px}
 header .logo{font-size:34px}
 header h2{margin:8px 0;font-size:22px}
 header p{margin:5px;font-size:14px}
-nav{display:flex;justify-content:center;gap:8px;
- flex-wrap:wrap;padding:15px}
-button,.btn{border:0;border-radius:9px;padding:11px 16px;
- cursor:pointer;font-family:inherit;font-size:14px}
-nav button{background:white;color:var(--green);
- border:1px solid var(--border)}
+nav{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:15px}
+button,.btn{border:0;border-radius:9px;padding:11px 16px;cursor:pointer;font-family:inherit;font-size:14px}
+nav button{background:white;color:var(--green);border:1px solid var(--border)}
 nav button.active,.primary{background:var(--green);color:white}
 .secondary{background:#e8f0eb;color:var(--green)}
 .danger{background:#b83b3b;color:white}
 .blue{background:var(--blue);color:white}
 .container{max-width:1100px;margin:12px auto;padding:12px}
-.panel{background:white;border:1px solid var(--border);
- border-radius:13px;padding:18px;margin-bottom:15px;
- box-shadow:0 2px 8px #173c2510}
+.panel{background:white;border:1px solid var(--border);border-radius:13px;padding:18px;margin-bottom:15px;box-shadow:0 2px 8px #173c2510}
 h3{color:var(--green);margin-top:0}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
 label{display:block;font-size:13px;font-weight:bold;margin-bottom:7px}
-input,select,textarea{width:100%;padding:12px;border:1px solid #ccd9d0;
- border-radius:8px;font-family:inherit;font-size:14px;background:white}
+input,select,textarea{width:100%;padding:12px;border:1px solid #ccd9d0;border-radius:8px;font-family:inherit;font-size:14px;background:white}
 input:focus,textarea:focus{outline:2px solid #b4d9c2}
 .field{margin-bottom:13px}
 .actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:650px}
 th{background:#e5f0e9;color:var(--green)}
-td,th{border:1px solid var(--border);padding:11px 8px;
- text-align:center;font-size:13px}
+td,th{border:1px solid var(--border);padding:11px 8px;text-align:center;font-size:13px;vertical-align:middle}
 td.subject{text-align:right;min-width:170px}
 .small{font-size:12px;color:#64746a}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
@@ -54,21 +45,43 @@ td.subject{text-align:right;min-width:170px}
 .stat strong{display:block;font-size:25px;color:var(--green);margin-top:8px}
 .hidden{display:none!important}
 footer{text-align:center;padding:20px;color:#65766c;font-size:12px}
-.qrbox{display:flex;justify-content:center;padding:10px}
-.report-head{text-align:center;border-bottom:3px double var(--gold);
- padding-bottom:15px;margin-bottom:18px}
+.report-head{text-align:center;border-bottom:3px double var(--gold);padding-bottom:15px;margin-bottom:18px}
 .report-head h2{color:var(--green)}
-.notice{background:#fff8e9;border:1px solid #ead8a8;
- padding:12px;border-radius:8px;font-size:13px}
+.notice{background:#fff8e9;border:1px solid #ead8a8;padding:12px;border-radius:8px;font-size:13px}
+.qr-mini{display:flex;justify-content:center;align-items:center;min-width:85px}
+.qr-mini img,.qr-mini canvas{max-width:80px!important;max-height:80px!important}
+.file-status{font-size:12px;color:var(--green);margin-top:5px}
+.modal{
+ position:fixed;inset:0;background:#0009;z-index:9999;
+ display:flex;align-items:center;justify-content:center;padding:14px
+}
+.modal-card{
+ background:white;border-radius:14px;padding:18px;
+ width:min(100%,460px);max-height:90vh;overflow:auto;text-align:center
+}
+.modal-card h3{margin-top:0}
+#qrDisplay{display:flex;justify-content:center;align-items:center;padding:15px;min-height:230px}
+#qrDisplay img,#qrDisplay canvas{max-width:100%;height:auto}
+.pdf-frame{width:100%;height:55vh;border:1px solid var(--border);border-radius:8px}
+.report-actions{display:flex;gap:5px;justify-content:center;flex-wrap:wrap}
+.report-actions button{padding:8px 10px;font-size:12px}
+@media(max-width:600px){
+ .container{padding:8px}
+ .panel{padding:13px}
+ header h2{font-size:19px}
+}
 @media print{
  body{background:white}
- header,nav,.no-print,footer{display:none!important}
+ header,nav,.no-print,footer,.modal{display:none!important}
  .container{max-width:none;margin:0;padding:0}
  .panel{box-shadow:none;border:0;padding:5px}
  .report-head{display:block!important}
- table{min-width:0}
- th,td{font-size:11px;padding:7px 4px}
+ table{min-width:0;width:100%}
+ th,td{font-size:10px;padding:5px 3px}
  .report-head h2{font-size:19px}
+ .qr-mini img,.qr-mini canvas{max-width:65px!important;max-height:65px!important}
+ .report-actions button{display:none!important}
+ .report-actions .pdf-label{display:inline!important}
 }
 </style>
 </head>
@@ -125,12 +138,12 @@ footer{text-align:center;padding:20px;color:#65766c;font-size:12px}
     </div>
     <div class="field">
      <label>التاريخ الهجري (أرقام فقط)</label>
-     <input id="inDate" required placeholder="1448/03/07"
-      pattern="[0-9]{4}/[0-9]{2}/[0-9]{2}" dir="ltr">
+     <input id="inDate" required placeholder="1448/03/07" pattern="[0-9]{4}/[0-9]{2}/[0-9]{2}" dir="ltr">
     </div>
     <div class="field">
      <label>إرفاق ملف PDF (اختياري)</label>
-     <input type="file" id="inPdf" accept="application/pdf">
+     <input type="file" id="inPdf" accept="application/pdf,.pdf">
+     <div id="inPdfStatus" class="file-status"></div>
     </div>
    </div>
    <div class="actions">
@@ -144,9 +157,7 @@ footer{text-align:center;padding:20px;color:#65766c;font-size:12px}
   <input placeholder="بحث في الموضوع أو الجهة أو التاريخ" oninput="searchTable(this,'inTable')">
   <div class="table-wrap">
    <table id="inTable">
-    <thead><tr><th>م</th><th>موضوع الخطاب</th>
-    <th>الجهة الوارد منها</th><th>التاريخ</th>
-    <th>QR</th><th class="no-print">الإجراءات</th></tr></thead>
+    <thead><tr><th>م</th><th>موضوع الخطاب</th><th>الجهة الوارد منها</th><th>التاريخ</th><th>QR</th><th>PDF</th><th class="no-print">الإجراءات</th></tr></thead>
     <tbody></tbody>
    </table>
   </div>
@@ -169,12 +180,12 @@ footer{text-align:center;padding:20px;color:#65766c;font-size:12px}
     </div>
     <div class="field">
      <label>التاريخ الهجري (أرقام فقط)</label>
-     <input id="outDate" required placeholder="1448/03/07"
-      pattern="[0-9]{4}/[0-9]{2}/[0-9]{2}" dir="ltr">
+     <input id="outDate" required placeholder="1448/03/07" pattern="[0-9]{4}/[0-9]{2}/[0-9]{2}" dir="ltr">
     </div>
     <div class="field">
      <label>إرفاق ملف PDF (اختياري)</label>
-     <input type="file" id="outPdf" accept="application/pdf">
+     <input type="file" id="outPdf" accept="application/pdf,.pdf">
+     <div id="outPdfStatus" class="file-status"></div>
     </div>
    </div>
    <div class="actions">
@@ -188,9 +199,7 @@ footer{text-align:center;padding:20px;color:#65766c;font-size:12px}
   <input placeholder="بحث في الموضوع أو الجهة أو التاريخ" oninput="searchTable(this,'outTable')">
   <div class="table-wrap">
    <table id="outTable">
-    <thead><tr><th>م</th><th>موضوع الخطاب</th>
-    <th>الجهة الصادر إليها</th><th>التاريخ</th>
-    <th>QR</th><th class="no-print">الإجراءات</th></tr></thead>
+    <thead><tr><th>م</th><th>موضوع الخطاب</th><th>الجهة الصادر إليها</th><th>التاريخ</th><th>QR</th><th>PDF</th><th class="no-print">الإجراءات</th></tr></thead>
     <tbody></tbody>
    </table>
   </div>
@@ -237,6 +246,7 @@ footer{text-align:center;padding:20px;color:#65766c;font-size:12px}
    <button class="blue" onclick="window.print()">طباعة / حفظ PDF</button>
   </div>
  </div>
+
  <div class="panel" id="reportArea">
   <div class="report-head">
    <div>وزارة التعليم</div>
@@ -251,8 +261,7 @@ footer{text-align:center;padding:20px;color:#65766c;font-size:12px}
   </div>
   <div class="table-wrap" style="margin-top:18px">
    <table id="reportTable">
-    <thead><tr><th>م</th><th>موضوع الخطاب</th>
-    <th>الجهة</th><th>التاريخ</th><th>QR</th></tr></thead>
+    <thead><tr><th>م</th><th>موضوع الخطاب</th><th>الجهة</th><th>التاريخ</th><th>QR</th><th>PDF</th></tr></thead>
     <tbody></tbody>
    </table>
   </div>
@@ -267,8 +276,7 @@ footer{text-align:center;padding:20px;color:#65766c;font-size:12px}
   <div class="actions">
    <button class="primary" onclick="exportBackup()">تصدير نسخة احتياطية</button>
    <label class="btn secondary">استعادة نسخة احتياطية
-    <input type="file" accept=".json,application/json"
-     onchange="importBackup(event)" hidden>
+    <input type="file" accept=".json,application/json" onchange="importBackup(event)" hidden>
    </label>
   </div>
   <p class="notice">تنبيه: البيانات محفوظة محليًا في هذا المتصفح والجهاز. النسخة الاحتياطية ضرورية عند تغيير الجهاز أو المتصفح أو مسح بياناته.</p>
@@ -288,32 +296,65 @@ footer{text-align:center;padding:20px;color:#65766c;font-size:12px}
 
 </main>
 
-<footer>
- إعداد وتصميم: مساعد إداري / خالد شاقي الرويلي
-</footer>
+<footer>إعداد وتصميم: مساعد إداري / خالد شاقي الرويلي</footer>
+
+<!-- نافذة عرض QR -->
+<div id="qrModal" class="modal hidden">
+ <div class="modal-card">
+  <h3>رمز QR للخطاب</h3>
+  <div id="qrDisplay"></div>
+  <div id="qrCaption" class="small"></div>
+  <div class="actions" style="justify-content:center">
+   <button class="primary" onclick="window.print()">طباعة QR</button>
+   <button class="secondary" onclick="closeQR()">إغلاق</button>
+  </div>
+ </div>
+</div>
+
+<!-- نافذة ملف PDF -->
+<div id="pdfModal" class="modal hidden">
+ <div class="modal-card" style="width:min(100%,850px)">
+  <h3 id="pdfTitle">عرض ملف PDF</h3>
+  <iframe id="pdfFrame" class="pdf-frame" title="ملف PDF"></iframe>
+  <div class="actions" style="justify-content:center">
+   <a id="pdfOpenLink" class="btn primary" target="_blank" rel="noopener">فتح PDF في صفحة مستقلة</a>
+   <a id="pdfDownloadLink" class="btn secondary" download="خطاب.pdf">تنزيل PDF</a>
+   <button class="danger" onclick="closePDF()">إغلاق</button>
+  </div>
+  <p class="small">إذا لم يظهر الملف داخل النافذة، استخدم زر «فتح PDF في صفحة مستقلة».</p>
+ </div>
+</div>
 
 <script>
 const KEY='school_mail_register_v1';
 let records={in:[],out:[]};
+let currentPdfURL=null;
 
 function load(){
  try{
   const x=JSON.parse(localStorage.getItem(KEY));
-  if(x && x.in && x.out) records=x;
- }catch(e){}
+  if(x && Array.isArray(x.in) && Array.isArray(x.out)) records=x;
+ }catch(e){
+  alert('تعذر قراءة السجلات المحفوظة.');
+ }
  renderAll();
 }
+
 function persist(){
  try{
   localStorage.setItem(KEY,JSON.stringify(records));
+  return true;
  }catch(e){
-  alert('مساحة التخزين ممتلئة. صدّر نسخة احتياطية واحذف بعض المرفقات الكبيرة.');
+  alert('تعذر الحفظ بسبب امتلاء مساحة المتصفح. صدّر نسخة احتياطية، وقد تحتاج إلى تقليل حجم ملفات PDF.');
+  return false;
  }
 }
+
 function go(id){
  const buttons=[...document.querySelectorAll('nav button')];
  showPage(id,buttons.find(b=>b.getAttribute('onclick')?.includes("'"+id+"'")));
 }
+
 function showPage(id,btn){
  document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));
  document.getElementById(id).classList.remove('hidden');
@@ -323,12 +364,14 @@ function showPage(id,btn){
  if(id==='incoming')renderTable('in');
  if(id==='outgoing')renderTable('out');
 }
+
 function validDate(s){
  return /^\d{4}\/\d{2}\/\d{2}$/.test(s);
 }
+
 function saveRecord(e,type){
  e.preventDefault();
- const p=type==='in'?'in':'out';
+ const p=type;
  const id=document.getElementById(p+'Id').value;
  const subject=document.getElementById(p+'Subject').value.trim();
  const entity=document.getElementById(p+'Entity').value.trim();
@@ -338,17 +381,29 @@ function saveRecord(e,type){
   alert('اكتب التاريخ بالصيغة 1448/03/07 بالأرقام فقط');
   return;
  }
- let old=records[p].find(x=>x.id===id);
- if(file && file.type!=='application/pdf'){
+ const old=records[p].find(x=>x.id===id);
+ if(file && file.type!=='application/pdf' && !file.name.toLowerCase().endsWith('.pdf')){
   alert('يرجى اختيار ملف PDF فقط');return;
  }
+ if(file && file.size>3*1024*1024){
+  if(!confirm('حجم الملف أكبر من 3 ميجابايت. قد لا تتسع له مساحة المتصفح. هل تريد محاولة حفظه؟'))return;
+ }
  const save=(pdf)=>{
-  const item={id:id||String(Date.now())+'-'+Math.random().toString(36).slice(2,7),
-   subject,entity,date,pdf:pdf!==undefined?pdf:(old?.pdf||null),
-   pdfName:file?.name||(old?.pdfName||'')};
+  const item={
+   id:id||String(Date.now())+'-'+Math.random().toString(36).slice(2,7),
+   subject,entity,date,
+   pdf:pdf!==undefined?pdf:(old?.pdf||null),
+   pdfName:file?.name||(old?.pdfName||'')
+  };
+  const previous=[...records[p]];
   if(old)records[p]=records[p].map(x=>x.id===id?item:x);
   else records[p].push(item);
-  persist();resetForm(p);renderAll();
+  if(!persist()){
+   records[p]=previous;
+   return;
+  }
+  resetForm(p);
+  renderAll();
   alert('تم حفظ الخطاب بنجاح');
  };
  if(file){
@@ -358,97 +413,167 @@ function saveRecord(e,type){
   r.readAsDataURL(file);
  }else save(undefined);
 }
+
 function resetForm(p){
  document.getElementById(p+'Form').reset();
  document.getElementById(p+'Id').value='';
+ document.getElementById(p+'PdfStatus').textContent='';
 }
+
 function editRecord(p,id){
- const x=records[p].find(r=>r.id===id);if(!x)return;
+ const x=records[p].find(r=>r.id===id);
+ if(!x)return;
  document.getElementById(p+'Id').value=x.id;
  document.getElementById(p+'Subject').value=x.subject;
  document.getElementById(p+'Entity').value=x.entity;
  document.getElementById(p+'Date').value=x.date;
+ document.getElementById(p+'PdfStatus').textContent=x.pdf?'المرفق الحالي: '+(x.pdfName||'ملف PDF')+' — اترك خانة الملف فارغة للاحتفاظ به.':'لا يوجد مرفق حالي.';
  document.getElementById(p+'Form').scrollIntoView({behavior:'smooth'});
 }
+
 function deleteRecord(p,id){
  if(!confirm('هل أنت متأكد من حذف هذا الخطاب؟'))return;
+ const previous=[...records[p]];
  records[p]=records[p].filter(x=>x.id!==id);
- persist();renderAll();
+ if(!persist()){records[p]=previous;return;}
+ renderAll();
 }
-function makeQR(x,p){
- const data={type:p==='in'?'وارد':'صادر',subject:x.subject,entity:x.entity,date:x.date};
- return location.href.split('#')[0]+'#record='+encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(data)))));
-}
-function qrButton(x,p){
- return `<button class="secondary" onclick="showQR('${p}','${x.id}')">QR</button>`;
-}
-function showQR(p,id){
- const x=records[p].find(r=>r.id===id);if(!x)return;
- const w=window.open('','_blank','width=360,height=480');
- if(!w){alert('اسمح بفتح النوافذ المنبثقة لعرض QR');return}
- const payload=makeQR(x,p);
- w.document.write(`<html dir="rtl"><meta charset="utf-8"><title>رمز QR</title>
- <body style="font-family:Tahoma;text-align:center;padding:20px">
- <h3>رمز الخطاب</h3><div id="q" style="display:flex;justify-content:center"></div>
- <p>${escapeHTML(x.subject)}</p><p>${escapeHTML(x.date)}</p>
- <p>${p==='in'?'البريد الوارد':'البريد الصادر'}</p>
- <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"><\/script>
- <script>new QRCode(document.getElementById('q'),{text:${JSON.stringify(payload)},width:210,height:210});<\/script>
- <button onclick="window.print()">طباعة QR</button></body></html>`);
- w.document.close();
-}
+
 function escapeHTML(s){
  return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+
+function makeQR(x,p){
+ const data={
+  type:p==='in'?'وارد':'صادر',
+  subject:x.subject,
+  entity:x.entity,
+  date:x.date
+ };
+ const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+ return location.origin+location.pathname+'#record='+encodeURIComponent(encoded);
+}
+
+function showQR(p,id){
+ const x=records[p].find(r=>r.id===id);
+ if(!x)return;
+ const box=document.getElementById('qrDisplay');
+ box.innerHTML='';
+ if(typeof QRCode==='undefined'){
+  alert('تعذر تحميل مكتبة QR. تحقق من اتصال الإنترنت ثم أعد المحاولة.');
+  return;
+ }
+ new QRCode(box,{
+  text:makeQR(x,p),
+  width:220,
+  height:220,
+  correctLevel:QRCode.CorrectLevel.M
+ });
+ document.getElementById('qrCaption').textContent=x.subject+' — '+x.date;
+ document.getElementById('qrModal').classList.remove('hidden');
+}
+
+function closeQR(){
+ document.getElementById('qrModal').classList.add('hidden');
+}
+
+function dataURLToBlob(dataURL){
+ const parts=dataURL.split(',');
+ const mime=(parts[0].match(/:(.*?);/)||[])[1]||'application/pdf';
+ const binary=atob(parts[1]);
+ const bytes=new Uint8Array(binary.length);
+ for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+ return new Blob([bytes],{type:mime});
+}
+
+function openPDF(p,id){
+ const x=records[p].find(r=>r.id===id);
+ if(!x || !x.pdf){
+  alert('لا يوجد ملف PDF مرفق بهذا الخطاب.');
+  return;
+ }
+ try{
+  if(currentPdfURL)URL.revokeObjectURL(currentPdfURL);
+  const blob=dataURLToBlob(x.pdf);
+  currentPdfURL=URL.createObjectURL(blob);
+  document.getElementById('pdfTitle').textContent=x.pdfName||'ملف PDF';
+  document.getElementById('pdfFrame').src=currentPdfURL;
+  document.getElementById('pdfOpenLink').href=currentPdfURL;
+  document.getElementById('pdfDownloadLink').href=currentPdfURL;
+  document.getElementById('pdfDownloadLink').download=x.pdfName||'خطاب.pdf';
+  document.getElementById('pdfModal').classList.remove('hidden');
+ }catch(e){
+  alert('تعذر فتح ملف PDF. قد يكون الملف غير صالح أو لم يُحفظ بشكل كامل.');
+ }
+}
+
+function closePDF(){
+ document.getElementById('pdfModal').classList.add('hidden');
+ document.getElementById('pdfFrame').src='about:blank';
+ if(currentPdfURL){
+  URL.revokeObjectURL(currentPdfURL);
+  currentPdfURL=null;
+ }
+}
+
 function renderTable(p){
- const body=document.querySelector('#'+(p==='in'?'inTable':'outTable')+' tbody');
+ const tableId=p==='in'?'inTable':'outTable';
+ const body=document.querySelector('#'+tableId+' tbody');
  body.innerHTML='';
  records[p].forEach((x,i)=>{
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td>${i+1}</td><td class="subject">${escapeHTML(x.subject)}</td>
-  <td>${escapeHTML(x.entity)}</td><td dir="ltr">${escapeHTML(x.date)}</td>
-  <td>${qrButton(x,p)}</td>
-  <td class="no-print">
-  <button class="secondary" onclick="editRecord('${p}','${x.id}')">✏️</button>
-  <button class="danger" onclick="deleteRecord('${p}','${x.id}')">🗑️</button>
-  ${x.pdf?`<button class="blue" onclick="openPDF('${p}','${x.id}')">📄</button>`:''}
-  </td>`;
+  tr.innerHTML=`
+   <td>${i+1}</td>
+   <td class="subject">${escapeHTML(x.subject)}</td>
+   <td>${escapeHTML(x.entity)}</td>
+   <td dir="ltr">${escapeHTML(x.date)}</td>
+   <td><button class="secondary" onclick="showQR('${p}','${x.id}')">عرض QR</button></td>
+   <td>${x.pdf?`<button class="blue" onclick="openPDF('${p}','${x.id}')">فتح PDF</button>`:'<span class="small">لا يوجد مرفق</span>'}</td>
+   <td class="no-print">
+    <button class="secondary" onclick="editRecord('${p}','${x.id}')">✏️ تعديل</button>
+    <button class="danger" onclick="deleteRecord('${p}','${x.id}')">🗑️ حذف</button>
+   </td>`;
   body.appendChild(tr);
  });
+ if(!records[p].length){
+  body.innerHTML='<tr><td colspan="7">لا توجد خطابات مسجلة حتى الآن</td></tr>';
+ }
 }
+
 function renderAll(){
- renderTable('in');renderTable('out');updateHome();
+ renderTable('in');
+ renderTable('out');
+ updateHome();
 }
+
 function updateHome(){
  document.getElementById('homeIn').textContent=records.in.length;
  document.getElementById('homeOut').textContent=records.out.length;
  document.getElementById('homeAll').textContent=records.in.length+records.out.length;
 }
-function openPDF(p,id){
- const x=records[p].find(r=>r.id===id);
- if(!x?.pdf)return alert('لا يوجد مرفق');
- const w=window.open();
- if(w)w.location.href=x.pdf;
- else alert('اسمح بفتح النوافذ المنبثقة');
-}
+
 function searchTable(input,id){
  const q=input.value.toLowerCase();
  document.querySelectorAll('#'+id+' tbody tr').forEach(r=>{
   r.style.display=r.textContent.toLowerCase().includes(q)?'':'none';
  });
 }
+
 function periodChanged(){
  const v=document.getElementById('period').value;
  document.getElementById('singleDate').classList.toggle('hidden',v==='all'||v==='custom');
  document.getElementById('fromField').classList.toggle('hidden',v!=='custom');
  document.getElementById('toField').classList.toggle('hidden',v!=='custom');
 }
+
 function generateReport(){
  const p=document.getElementById('reportType').value;
  const period=document.getElementById('period').value;
  let list=[...records[p]];
  let label='';
+
  if(period==='all')label='كامل السجل';
+
  if(period==='custom'){
   const a=document.getElementById('fromDate').value;
   const b=document.getElementById('toDate').value;
@@ -456,11 +581,14 @@ function generateReport(){
   list=list.filter(x=>x.date>=a&&x.date<=b);
   label='من '+a+' إلى '+b;
  }
+
  if(period==='day'||period==='week'||period==='month'||period==='year'){
   const d=document.getElementById('refDate').value;
   if(!validDate(d))return alert('أدخل التاريخ الهجري بالصيغة 1448/03/07');
+
   if(period==='day'){
-   list=list.filter(x=>x.date===d);label='اليوم '+d;
+   list=list.filter(x=>x.date===d);
+   label='اليوم '+d;
   }else if(period==='month'){
    list=list.filter(x=>x.date.slice(0,7)===d.slice(0,7));
    label='شهر '+d.slice(0,7);
@@ -468,65 +596,127 @@ function generateReport(){
    list=list.filter(x=>x.date.slice(0,4)===d.slice(0,4));
    label='عام '+d.slice(0,4);
   }else{
-   const year=+d.slice(0,4),month=+d.slice(5,7),day=+d.slice(8,10);
-   const serial=year*354.367+month*29.53+day;
-   list=list.filter(x=>{
-    const [y,m,dd]=x.date.split('/').map(Number);
-    const s=y*354.367+m*29.53+dd;
-    return Math.floor((s-serial+3)/7)===0;
-   });
-   label='الأسبوع الذي يشمل '+d;
+   alert('لضبط التقرير الأسبوعي بدقة، استخدم خيار «من تاريخ إلى تاريخ» وحدد بداية الأسبوع ونهايته.');
+   return;
   }
  }
+
  list.sort((a,b)=>a.date.localeCompare(b.date));
  document.getElementById('reportTitle').textContent=p==='in'?'تقرير البريد الوارد':'تقرير البريد الصادر';
  document.getElementById('reportPeriod').textContent=label;
  document.getElementById('reportCount').textContent=list.length;
  document.getElementById('reportFiles').textContent=list.filter(x=>x.pdf).length;
- const body=document.querySelector('#reportTable tbody');body.innerHTML='';
+
+ const body=document.querySelector('#reportTable tbody');
+ body.innerHTML='';
+
+ if(!list.length){
+  body.innerHTML='<tr><td colspan="6">لا توجد خطابات في الفترة المحددة</td></tr>';
+  return;
+ }
+
  list.forEach((x,i)=>{
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td>${i+1}</td><td class="subject">${escapeHTML(x.subject)}</td>
-  <td>${escapeHTML(x.entity)}</td><td dir="ltr">${escapeHTML(x.date)}</td>
-  <td>QR</td>`;
+  const qrId='reportQR'+i;
+  tr.innerHTML=`
+   <td>${i+1}</td>
+   <td class="subject">${escapeHTML(x.subject)}</td>
+   <td>${escapeHTML(x.entity)}</td>
+   <td dir="ltr">${escapeHTML(x.date)}</td>
+   <td>
+    <div class="qr-mini" id="${qrId}"></div>
+    <div class="report-actions no-print">
+     <button class="secondary" onclick="showQR('${p}','${x.id}')">تكبير QR</button>
+    </div>
+   </td>
+   <td>
+    ${x.pdf?
+     `<div class="report-actions"><button class="blue" onclick="openPDF('${p}','${x.id}')">فتح PDF</button><span class="pdf-label hidden">مرفق PDF</span></div>`:
+     '<span class="small">لا يوجد مرفق</span>'}
+   </td>`;
   body.appendChild(tr);
+
+  const qrBox=tr.querySelector('#'+qrId);
+  if(typeof QRCode!=='undefined'){
+   new QRCode(qrBox,{
+    text:makeQR(x,p),
+    width:75,
+    height:75,
+    correctLevel:QRCode.CorrectLevel.M
+   });
+  }else{
+   qrBox.textContent='تعذر إنشاء QR';
+  }
  });
- if(!list.length)body.innerHTML='<tr><td colspan="5">لا توجد خطابات في الفترة المحددة</td></tr>';
 }
+
 function exportBackup(){
- const blob=new Blob([JSON.stringify(records)],{type:'application/json'});
- const a=document.createElement('a');
- a.href=URL.createObjectURL(blob);a.download='نسخة-سجل-البريد.json';a.click();
- URL.revokeObjectURL(a.href);
+ try{
+  const blob=new Blob([JSON.stringify(records)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='نسخة-سجل-البريد.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+ }catch(e){
+  alert('تعذر إنشاء النسخة الاحتياطية.');
+ }
 }
+
 function importBackup(e){
- const file=e.target.files[0];if(!file)return;
+ const file=e.target.files[0];
+ if(!file)return;
  const r=new FileReader();
  r.onload=()=>{
   try{
    const x=JSON.parse(r.result);
    if(!Array.isArray(x.in)||!Array.isArray(x.out))throw Error();
    if(!confirm('سيتم استبدال السجلات الحالية. هل تريد المتابعة؟'))return;
-   records=x;persist();renderAll();alert('تمت استعادة النسخة بنجاح');
-  }catch(err){alert('ملف النسخة الاحتياطية غير صالح');}
+   const previous=records;
+   records=x;
+   if(!persist()){
+    records=previous;
+    return;
+   }
+   renderAll();
+   alert('تمت استعادة النسخة بنجاح');
+  }catch(err){
+   alert('ملف النسخة الاحتياطية غير صالح');
+  }
  };
  r.readAsText(file);
 }
+
 function readQR(){
  const match=location.hash.match(/#record=(.+)$/);
  if(!match)return;
  try{
-  const data=JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(match[1])))));
+  const encoded=decodeURIComponent(match[1]);
+  const data=JSON.parse(decodeURIComponent(escape(atob(encoded))));
   document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));
-  const page=document.getElementById('recordView');page.classList.remove('hidden');
+  const page=document.getElementById('recordView');
+  page.classList.remove('hidden');
   document.getElementById('recordDetails').innerHTML=`
    <p><b>نوع الخطاب:</b> ${escapeHTML(data.type)}</p>
    <p><b>موضوع الخطاب:</b> ${escapeHTML(data.subject)}</p>
    <p><b>الجهة:</b> ${escapeHTML(data.entity)}</p>
    <p><b>التاريخ:</b> ${escapeHTML(data.date)}</p>
    <div class="notice">هذه بيانات الخطاب المشفرة داخل رمز QR.</div>`;
- }catch(e){}
+ }catch(e){
+  alert('تعذر قراءة بيانات رمز QR.');
+ }
 }
+
+document.getElementById('inPdf').addEventListener('change',function(){
+ document.getElementById('inPdfStatus').textContent=this.files[0]?'الملف المختار: '+this.files[0].name:'';
+});
+document.getElementById('outPdf').addEventListener('change',function(){
+ document.getElementById('outPdfStatus').textContent=this.files[0]?'الملف المختار: '+this.files[0].name:'';
+});
+
 load();
 periodChanged();
 readQR();
