@@ -1,0 +1,535 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>منصة سجل البريد الوارد والصادر</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+ --green:#176b46;--green2:#21865b;--blue:#246b91;
+ --gold:#c6a45b;--bg:#f4f7f5;--border:#dce6df;
+ --text:#26382e;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+ font-family:Tahoma,Arial,sans-serif}
+header{background:linear-gradient(120deg,#145b3d,#247b70);
+ color:white;text-align:center;padding:22px 12px}
+header .logo{font-size:34px}
+header h2{margin:8px 0;font-size:22px}
+header p{margin:5px;font-size:14px}
+nav{display:flex;justify-content:center;gap:8px;
+ flex-wrap:wrap;padding:15px}
+button,.btn{border:0;border-radius:9px;padding:11px 16px;
+ cursor:pointer;font-family:inherit;font-size:14px}
+nav button{background:white;color:var(--green);
+ border:1px solid var(--border)}
+nav button.active,.primary{background:var(--green);color:white}
+.secondary{background:#e8f0eb;color:var(--green)}
+.danger{background:#b83b3b;color:white}
+.blue{background:var(--blue);color:white}
+.container{max-width:1100px;margin:12px auto;padding:12px}
+.panel{background:white;border:1px solid var(--border);
+ border-radius:13px;padding:18px;margin-bottom:15px;
+ box-shadow:0 2px 8px #173c2510}
+h3{color:var(--green);margin-top:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+label{display:block;font-size:13px;font-weight:bold;margin-bottom:7px}
+input,select,textarea{width:100%;padding:12px;border:1px solid #ccd9d0;
+ border-radius:8px;font-family:inherit;font-size:14px;background:white}
+input:focus,textarea:focus{outline:2px solid #b4d9c2}
+.field{margin-bottom:13px}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:650px}
+th{background:#e5f0e9;color:var(--green)}
+td,th{border:1px solid var(--border);padding:11px 8px;
+ text-align:center;font-size:13px}
+td.subject{text-align:right;min-width:170px}
+.small{font-size:12px;color:#64746a}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.stat{background:#eef6f0;border-radius:10px;padding:15px;text-align:center}
+.stat strong{display:block;font-size:25px;color:var(--green);margin-top:8px}
+.hidden{display:none!important}
+footer{text-align:center;padding:20px;color:#65766c;font-size:12px}
+.qrbox{display:flex;justify-content:center;padding:10px}
+.report-head{text-align:center;border-bottom:3px double var(--gold);
+ padding-bottom:15px;margin-bottom:18px}
+.report-head h2{color:var(--green)}
+.notice{background:#fff8e9;border:1px solid #ead8a8;
+ padding:12px;border-radius:8px;font-size:13px}
+@media print{
+ body{background:white}
+ header,nav,.no-print,footer{display:none!important}
+ .container{max-width:none;margin:0;padding:0}
+ .panel{box-shadow:none;border:0;padding:5px}
+ .report-head{display:block!important}
+ table{min-width:0}
+ th,td{font-size:11px;padding:7px 4px}
+ .report-head h2{font-size:19px}
+}
+</style>
+</head>
+<body>
+
+<header>
+ <div class="logo">✉️</div>
+ <div>وزارة التعليم</div>
+ <div>الإدارة العامة للتعليم بمنطقة الجوف</div>
+ <h2>منصة سجل البريد الوارد والصادر</h2>
+ <p>مدرسة عبدالله بن مسعود</p>
+</header>
+
+<nav class="no-print">
+ <button class="active" onclick="showPage('home',this)">الرئيسية</button>
+ <button onclick="showPage('incoming',this)">📥 البريد الوارد</button>
+ <button onclick="showPage('outgoing',this)">📤 البريد الصادر</button>
+ <button onclick="showPage('reports',this)">📊 التقارير</button>
+ <button onclick="showPage('backup',this)">💾 النسخ الاحتياطي</button>
+</nav>
+
+<main class="container">
+
+<section id="home" class="page">
+ <div class="panel" style="text-align:center">
+  <h3>مرحباً بك في منصة سجل البريد</h3>
+  <p>نظام مبسط لتسجيل وأرشفة الخطابات الواردة والصادرة</p>
+ </div>
+ <div class="stats">
+  <div class="stat">إجمالي الوارد<strong id="homeIn">0</strong></div>
+  <div class="stat">إجمالي الصادر<strong id="homeOut">0</strong></div>
+  <div class="stat">إجمالي الخطابات<strong id="homeAll">0</strong></div>
+ </div>
+ <div class="grid" style="margin-top:15px">
+  <button class="primary" onclick="go('incoming')">📥 تسجيل بريد وارد</button>
+  <button class="blue" onclick="go('outgoing')">📤 تسجيل بريد صادر</button>
+  <button class="secondary" onclick="go('reports')">📊 استخراج التقارير</button>
+ </div>
+</section>
+
+<section id="incoming" class="page hidden">
+ <div class="panel">
+  <h3>📥 سجل البريد الوارد</h3>
+  <form id="inForm" onsubmit="saveRecord(event,'in')">
+   <input type="hidden" id="inId">
+   <div class="grid">
+    <div class="field">
+     <label>موضوع الخطاب</label>
+     <input id="inSubject" required placeholder="موضوع الخطاب">
+    </div>
+    <div class="field">
+     <label>الجهة الوارد منها</label>
+     <input id="inEntity" required placeholder="اسم الجهة">
+    </div>
+    <div class="field">
+     <label>التاريخ الهجري (أرقام فقط)</label>
+     <input id="inDate" required placeholder="1448/03/07"
+      pattern="[0-9]{4}/[0-9]{2}/[0-9]{2}" dir="ltr">
+    </div>
+    <div class="field">
+     <label>إرفاق ملف PDF (اختياري)</label>
+     <input type="file" id="inPdf" accept="application/pdf">
+    </div>
+   </div>
+   <div class="actions">
+    <button class="primary" type="submit">حفظ الخطاب</button>
+    <button class="secondary" type="button" onclick="resetForm('in')">إلغاء</button>
+   </div>
+  </form>
+ </div>
+ <div class="panel">
+  <h3>قائمة البريد الوارد</h3>
+  <input placeholder="بحث في الموضوع أو الجهة أو التاريخ" oninput="searchTable(this,'inTable')">
+  <div class="table-wrap">
+   <table id="inTable">
+    <thead><tr><th>م</th><th>موضوع الخطاب</th>
+    <th>الجهة الوارد منها</th><th>التاريخ</th>
+    <th>QR</th><th class="no-print">الإجراءات</th></tr></thead>
+    <tbody></tbody>
+   </table>
+  </div>
+ </div>
+</section>
+
+<section id="outgoing" class="page hidden">
+ <div class="panel">
+  <h3>📤 سجل البريد الصادر</h3>
+  <form id="outForm" onsubmit="saveRecord(event,'out')">
+   <input type="hidden" id="outId">
+   <div class="grid">
+    <div class="field">
+     <label>موضوع الخطاب</label>
+     <input id="outSubject" required placeholder="موضوع الخطاب">
+    </div>
+    <div class="field">
+     <label>الجهة الصادر إليها</label>
+     <input id="outEntity" required placeholder="اسم الجهة">
+    </div>
+    <div class="field">
+     <label>التاريخ الهجري (أرقام فقط)</label>
+     <input id="outDate" required placeholder="1448/03/07"
+      pattern="[0-9]{4}/[0-9]{2}/[0-9]{2}" dir="ltr">
+    </div>
+    <div class="field">
+     <label>إرفاق ملف PDF (اختياري)</label>
+     <input type="file" id="outPdf" accept="application/pdf">
+    </div>
+   </div>
+   <div class="actions">
+    <button class="primary" type="submit">حفظ الخطاب</button>
+    <button class="secondary" type="button" onclick="resetForm('out')">إلغاء</button>
+   </div>
+  </form>
+ </div>
+ <div class="panel">
+  <h3>قائمة البريد الصادر</h3>
+  <input placeholder="بحث في الموضوع أو الجهة أو التاريخ" oninput="searchTable(this,'outTable')">
+  <div class="table-wrap">
+   <table id="outTable">
+    <thead><tr><th>م</th><th>موضوع الخطاب</th>
+    <th>الجهة الصادر إليها</th><th>التاريخ</th>
+    <th>QR</th><th class="no-print">الإجراءات</th></tr></thead>
+    <tbody></tbody>
+   </table>
+  </div>
+ </div>
+</section>
+
+<section id="reports" class="page hidden">
+ <div class="panel no-print">
+  <h3>📊 التقارير والإحصائيات</h3>
+  <div class="grid">
+   <div class="field">
+    <label>نوع التقرير</label>
+    <select id="reportType">
+     <option value="in">البريد الوارد فقط</option>
+     <option value="out">البريد الصادر فقط</option>
+    </select>
+   </div>
+   <div class="field">
+    <label>الفترة</label>
+    <select id="period" onchange="periodChanged()">
+     <option value="day">يومي</option>
+     <option value="week">أسبوعي</option>
+     <option value="month">شهري</option>
+     <option value="year">سنوي</option>
+     <option value="custom">من تاريخ إلى تاريخ</option>
+     <option value="all">كامل السجل</option>
+    </select>
+   </div>
+   <div class="field" id="singleDate">
+    <label>التاريخ الهجري المرجعي</label>
+    <input id="refDate" placeholder="1448/03/07" dir="ltr">
+   </div>
+   <div class="field hidden" id="fromField">
+    <label>من تاريخ</label>
+    <input id="fromDate" placeholder="1448/03/01" dir="ltr">
+   </div>
+   <div class="field hidden" id="toField">
+    <label>إلى تاريخ</label>
+    <input id="toDate" placeholder="1448/03/30" dir="ltr">
+   </div>
+  </div>
+  <div class="actions">
+   <button class="primary" onclick="generateReport()">عرض التقرير</button>
+   <button class="blue" onclick="window.print()">طباعة / حفظ PDF</button>
+  </div>
+ </div>
+ <div class="panel" id="reportArea">
+  <div class="report-head">
+   <div>وزارة التعليم</div>
+   <div>الإدارة العامة للتعليم بمنطقة الجوف</div>
+   <div>مدرسة عبدالله بن مسعود</div>
+   <h2 id="reportTitle">تقرير البريد الوارد</h2>
+   <p id="reportPeriod">الفترة المحددة</p>
+  </div>
+  <div class="stats">
+   <div class="stat">عدد الخطابات<strong id="reportCount">0</strong></div>
+   <div class="stat">عدد المرفقات<strong id="reportFiles">0</strong></div>
+  </div>
+  <div class="table-wrap" style="margin-top:18px">
+   <table id="reportTable">
+    <thead><tr><th>م</th><th>موضوع الخطاب</th>
+    <th>الجهة</th><th>التاريخ</th><th>QR</th></tr></thead>
+    <tbody></tbody>
+   </table>
+  </div>
+  <p style="text-align:center;margin-top:30px">مدرسة عبدالله بن مسعود</p>
+ </div>
+</section>
+
+<section id="backup" class="page hidden">
+ <div class="panel">
+  <h3>💾 النسخ الاحتياطي</h3>
+  <p>احتفظ بنسخة من سجلاتك ومرفقاتك بشكل دوري.</p>
+  <div class="actions">
+   <button class="primary" onclick="exportBackup()">تصدير نسخة احتياطية</button>
+   <label class="btn secondary">استعادة نسخة احتياطية
+    <input type="file" accept=".json,application/json"
+     onchange="importBackup(event)" hidden>
+   </label>
+  </div>
+  <p class="notice">تنبيه: البيانات محفوظة محليًا في هذا المتصفح والجهاز. النسخة الاحتياطية ضرورية عند تغيير الجهاز أو المتصفح أو مسح بياناته.</p>
+ </div>
+</section>
+
+<section id="recordView" class="page hidden">
+ <div class="panel">
+  <h3>تفاصيل الخطاب</h3>
+  <div id="recordDetails"></div>
+  <div class="actions no-print">
+   <button class="primary" onclick="window.print()">طباعة التفاصيل</button>
+   <button class="secondary" onclick="showPage('home')">الرئيسية</button>
+  </div>
+ </div>
+</section>
+
+</main>
+
+<footer>
+ إعداد وتصميم: مساعد إداري / خالد شاقي الرويلي
+</footer>
+
+<script>
+const KEY='school_mail_register_v1';
+let records={in:[],out:[]};
+
+function load(){
+ try{
+  const x=JSON.parse(localStorage.getItem(KEY));
+  if(x && x.in && x.out) records=x;
+ }catch(e){}
+ renderAll();
+}
+function persist(){
+ try{
+  localStorage.setItem(KEY,JSON.stringify(records));
+ }catch(e){
+  alert('مساحة التخزين ممتلئة. صدّر نسخة احتياطية واحذف بعض المرفقات الكبيرة.');
+ }
+}
+function go(id){
+ const buttons=[...document.querySelectorAll('nav button')];
+ showPage(id,buttons.find(b=>b.getAttribute('onclick')?.includes("'"+id+"'")));
+}
+function showPage(id,btn){
+ document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));
+ document.getElementById(id).classList.remove('hidden');
+ document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+ if(btn)btn.classList.add('active');
+ if(id==='home')updateHome();
+ if(id==='incoming')renderTable('in');
+ if(id==='outgoing')renderTable('out');
+}
+function validDate(s){
+ return /^\d{4}\/\d{2}\/\d{2}$/.test(s);
+}
+function saveRecord(e,type){
+ e.preventDefault();
+ const p=type==='in'?'in':'out';
+ const id=document.getElementById(p+'Id').value;
+ const subject=document.getElementById(p+'Subject').value.trim();
+ const entity=document.getElementById(p+'Entity').value.trim();
+ const date=document.getElementById(p+'Date').value.trim();
+ const file=document.getElementById(p+'Pdf').files[0];
+ if(!validDate(date)){
+  alert('اكتب التاريخ بالصيغة 1448/03/07 بالأرقام فقط');
+  return;
+ }
+ let old=records[p].find(x=>x.id===id);
+ if(file && file.type!=='application/pdf'){
+  alert('يرجى اختيار ملف PDF فقط');return;
+ }
+ const save=(pdf)=>{
+  const item={id:id||String(Date.now())+'-'+Math.random().toString(36).slice(2,7),
+   subject,entity,date,pdf:pdf!==undefined?pdf:(old?.pdf||null),
+   pdfName:file?.name||(old?.pdfName||'')};
+  if(old)records[p]=records[p].map(x=>x.id===id?item:x);
+  else records[p].push(item);
+  persist();resetForm(p);renderAll();
+  alert('تم حفظ الخطاب بنجاح');
+ };
+ if(file){
+  const r=new FileReader();
+  r.onload=()=>save(r.result);
+  r.onerror=()=>alert('تعذر قراءة الملف');
+  r.readAsDataURL(file);
+ }else save(undefined);
+}
+function resetForm(p){
+ document.getElementById(p+'Form').reset();
+ document.getElementById(p+'Id').value='';
+}
+function editRecord(p,id){
+ const x=records[p].find(r=>r.id===id);if(!x)return;
+ document.getElementById(p+'Id').value=x.id;
+ document.getElementById(p+'Subject').value=x.subject;
+ document.getElementById(p+'Entity').value=x.entity;
+ document.getElementById(p+'Date').value=x.date;
+ document.getElementById(p+'Form').scrollIntoView({behavior:'smooth'});
+}
+function deleteRecord(p,id){
+ if(!confirm('هل أنت متأكد من حذف هذا الخطاب؟'))return;
+ records[p]=records[p].filter(x=>x.id!==id);
+ persist();renderAll();
+}
+function makeQR(x,p){
+ const data={type:p==='in'?'وارد':'صادر',subject:x.subject,entity:x.entity,date:x.date};
+ return location.href.split('#')[0]+'#record='+encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(data)))));
+}
+function qrButton(x,p){
+ return `<button class="secondary" onclick="showQR('${p}','${x.id}')">QR</button>`;
+}
+function showQR(p,id){
+ const x=records[p].find(r=>r.id===id);if(!x)return;
+ const w=window.open('','_blank','width=360,height=480');
+ if(!w){alert('اسمح بفتح النوافذ المنبثقة لعرض QR');return}
+ const payload=makeQR(x,p);
+ w.document.write(`<html dir="rtl"><meta charset="utf-8"><title>رمز QR</title>
+ <body style="font-family:Tahoma;text-align:center;padding:20px">
+ <h3>رمز الخطاب</h3><div id="q" style="display:flex;justify-content:center"></div>
+ <p>${escapeHTML(x.subject)}</p><p>${escapeHTML(x.date)}</p>
+ <p>${p==='in'?'البريد الوارد':'البريد الصادر'}</p>
+ <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"><\/script>
+ <script>new QRCode(document.getElementById('q'),{text:${JSON.stringify(payload)},width:210,height:210});<\/script>
+ <button onclick="window.print()">طباعة QR</button></body></html>`);
+ w.document.close();
+}
+function escapeHTML(s){
+ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function renderTable(p){
+ const body=document.querySelector('#'+(p==='in'?'inTable':'outTable')+' tbody');
+ body.innerHTML='';
+ records[p].forEach((x,i)=>{
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${i+1}</td><td class="subject">${escapeHTML(x.subject)}</td>
+  <td>${escapeHTML(x.entity)}</td><td dir="ltr">${escapeHTML(x.date)}</td>
+  <td>${qrButton(x,p)}</td>
+  <td class="no-print">
+  <button class="secondary" onclick="editRecord('${p}','${x.id}')">✏️</button>
+  <button class="danger" onclick="deleteRecord('${p}','${x.id}')">🗑️</button>
+  ${x.pdf?`<button class="blue" onclick="openPDF('${p}','${x.id}')">📄</button>`:''}
+  </td>`;
+  body.appendChild(tr);
+ });
+}
+function renderAll(){
+ renderTable('in');renderTable('out');updateHome();
+}
+function updateHome(){
+ document.getElementById('homeIn').textContent=records.in.length;
+ document.getElementById('homeOut').textContent=records.out.length;
+ document.getElementById('homeAll').textContent=records.in.length+records.out.length;
+}
+function openPDF(p,id){
+ const x=records[p].find(r=>r.id===id);
+ if(!x?.pdf)return alert('لا يوجد مرفق');
+ const w=window.open();
+ if(w)w.location.href=x.pdf;
+ else alert('اسمح بفتح النوافذ المنبثقة');
+}
+function searchTable(input,id){
+ const q=input.value.toLowerCase();
+ document.querySelectorAll('#'+id+' tbody tr').forEach(r=>{
+  r.style.display=r.textContent.toLowerCase().includes(q)?'':'none';
+ });
+}
+function periodChanged(){
+ const v=document.getElementById('period').value;
+ document.getElementById('singleDate').classList.toggle('hidden',v==='all'||v==='custom');
+ document.getElementById('fromField').classList.toggle('hidden',v!=='custom');
+ document.getElementById('toField').classList.toggle('hidden',v!=='custom');
+}
+function generateReport(){
+ const p=document.getElementById('reportType').value;
+ const period=document.getElementById('period').value;
+ let list=[...records[p]];
+ let label='';
+ if(period==='all')label='كامل السجل';
+ if(period==='custom'){
+  const a=document.getElementById('fromDate').value;
+  const b=document.getElementById('toDate').value;
+  if(!validDate(a)||!validDate(b)||a>b)return alert('تحقق من تاريخ البداية والنهاية');
+  list=list.filter(x=>x.date>=a&&x.date<=b);
+  label='من '+a+' إلى '+b;
+ }
+ if(period==='day'||period==='week'||period==='month'||period==='year'){
+  const d=document.getElementById('refDate').value;
+  if(!validDate(d))return alert('أدخل التاريخ الهجري بالصيغة 1448/03/07');
+  if(period==='day'){
+   list=list.filter(x=>x.date===d);label='اليوم '+d;
+  }else if(period==='month'){
+   list=list.filter(x=>x.date.slice(0,7)===d.slice(0,7));
+   label='شهر '+d.slice(0,7);
+  }else if(period==='year'){
+   list=list.filter(x=>x.date.slice(0,4)===d.slice(0,4));
+   label='عام '+d.slice(0,4);
+  }else{
+   const year=+d.slice(0,4),month=+d.slice(5,7),day=+d.slice(8,10);
+   const serial=year*354.367+month*29.53+day;
+   list=list.filter(x=>{
+    const [y,m,dd]=x.date.split('/').map(Number);
+    const s=y*354.367+m*29.53+dd;
+    return Math.floor((s-serial+3)/7)===0;
+   });
+   label='الأسبوع الذي يشمل '+d;
+  }
+ }
+ list.sort((a,b)=>a.date.localeCompare(b.date));
+ document.getElementById('reportTitle').textContent=p==='in'?'تقرير البريد الوارد':'تقرير البريد الصادر';
+ document.getElementById('reportPeriod').textContent=label;
+ document.getElementById('reportCount').textContent=list.length;
+ document.getElementById('reportFiles').textContent=list.filter(x=>x.pdf).length;
+ const body=document.querySelector('#reportTable tbody');body.innerHTML='';
+ list.forEach((x,i)=>{
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${i+1}</td><td class="subject">${escapeHTML(x.subject)}</td>
+  <td>${escapeHTML(x.entity)}</td><td dir="ltr">${escapeHTML(x.date)}</td>
+  <td>QR</td>`;
+  body.appendChild(tr);
+ });
+ if(!list.length)body.innerHTML='<tr><td colspan="5">لا توجد خطابات في الفترة المحددة</td></tr>';
+}
+function exportBackup(){
+ const blob=new Blob([JSON.stringify(records)],{type:'application/json'});
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);a.download='نسخة-سجل-البريد.json';a.click();
+ URL.revokeObjectURL(a.href);
+}
+function importBackup(e){
+ const file=e.target.files[0];if(!file)return;
+ const r=new FileReader();
+ r.onload=()=>{
+  try{
+   const x=JSON.parse(r.result);
+   if(!Array.isArray(x.in)||!Array.isArray(x.out))throw Error();
+   if(!confirm('سيتم استبدال السجلات الحالية. هل تريد المتابعة؟'))return;
+   records=x;persist();renderAll();alert('تمت استعادة النسخة بنجاح');
+  }catch(err){alert('ملف النسخة الاحتياطية غير صالح');}
+ };
+ r.readAsText(file);
+}
+function readQR(){
+ const match=location.hash.match(/#record=(.+)$/);
+ if(!match)return;
+ try{
+  const data=JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(match[1])))));
+  document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));
+  const page=document.getElementById('recordView');page.classList.remove('hidden');
+  document.getElementById('recordDetails').innerHTML=`
+   <p><b>نوع الخطاب:</b> ${escapeHTML(data.type)}</p>
+   <p><b>موضوع الخطاب:</b> ${escapeHTML(data.subject)}</p>
+   <p><b>الجهة:</b> ${escapeHTML(data.entity)}</p>
+   <p><b>التاريخ:</b> ${escapeHTML(data.date)}</p>
+   <div class="notice">هذه بيانات الخطاب المشفرة داخل رمز QR.</div>`;
+ }catch(e){}
+}
+load();
+periodChanged();
+readQR();
+</script>
+</body>
+</html>
