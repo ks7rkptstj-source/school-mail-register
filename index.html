@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -9,81 +10,354 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 :root{--green:#176b46;--green2:#21865b;--blue:#246b91;--gold:#c6a45b;--bg:#f4f7f5;--border:#dce6df;--text:#26382e}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Tahoma,Arial,sans-serif}
-header{background:linear-gradient(120deg,#145b3d,#247b70);color:white;text-align:center;padding:22px 12px}header .logo{font-size:34px}header h2{margin:8px 0;font-size:22px}header p{margin:5px;font-size:14px}
-nav{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:15px}button,.btn{border:0;border-radius:9px;padding:11px 16px;cursor:pointer;font-family:inherit;font-size:14px}nav button{background:white;color:var(--green);border:1px solid var(--border)}nav button.active,.primary{background:var(--green);color:white}.secondary{background:#e8f0eb;color:var(--green)}.danger{background:#b83b3b;color:white}.blue{background:var(--blue);color:white}
-.container{max-width:1100px;margin:12px auto;padding:12px}.panel{background:white;border:1px solid var(--border);border-radius:13px;padding:18px;margin-bottom:15px;box-shadow:0 2px 8px #173c2510}h3{color:var(--green);margin-top:0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
-label{display:block;font-size:13px;font-weight:bold;margin-bottom:7px}input,select,textarea{width:100%;padding:12px;border:1px solid #ccd9d0;border-radius:8px;font-family:inherit;font-size:14px;background:white}input:focus,textarea:focus{outline:2px solid #b4d9c2}.field{margin-bottom:13px}.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
-.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:700px}th{background:#e5f0e9;color:var(--green)}td,th{border:1px solid var(--border);padding:11px 8px;text-align:center;font-size:13px;vertical-align:middle}td.subject{text-align:right;min-width:170px}.small{font-size:12px;color:#64746a}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.stat{background:#eef6f0;border-radius:10px;padding:15px;text-align:center}.stat strong{display:block;font-size:25px;color:var(--green);margin-top:8px}.hidden{display:none!important}footer{text-align:center;padding:20px;color:#65766c;font-size:12px}
-.report-head{text-align:center;border-bottom:3px double var(--gold);padding-bottom:15px;margin-bottom:18px}.report-head h2{color:var(--green)}.notice{background:#fff8e9;border:1px solid #ead8a8;padding:12px;border-radius:8px;font-size:13px}
-.qr-mini{display:flex;justify-content:center;align-items:center;min-width:85px;min-height:85px}.qr-mini img,.qr-mini canvas{max-width:80px!important;max-height:80px!important}.qr-uploaded{width:82px;height:82px;object-fit:contain;display:block;margin:auto;background:#fff}.file-status{font-size:12px;color:var(--green);margin-top:5px}
-.modal{position:fixed;inset:0;background:#0009;z-index:9999;display:flex;align-items:center;justify-content:center;padding:14px}.modal-card{background:white;border-radius:14px;padding:18px;width:min(100%,460px);max-height:90vh;overflow:auto;text-align:center}.modal-card h3{margin-top:0}#qrDisplay{display:flex;justify-content:center;align-items:center;padding:15px;min-height:230px}#qrDisplay img,#qrDisplay canvas{max-width:100%;height:auto}.pdf-frame{width:100%;height:55vh;border:1px solid var(--border);border-radius:8px}
-.report-actions{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:6px}.report-actions button{padding:8px 10px;font-size:12px}.qr-upload-input{display:none!important}.qr-upload-note{font-size:11px;color:#64746a;margin-top:5px}.search-results{margin-top:15px}.search-results table{min-width:850px}
-.approval-area{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:35px;page-break-inside:avoid}.approval-item{border:1px solid var(--border);border-radius:12px;padding:17px;text-align:center;background:#fbfdfb;min-height:155px}.approval-item .approval-icon{font-size:27px;margin-bottom:8px}.approval-item h4{color:var(--green);margin:5px 0 12px;font-size:14px}.approval-item p{font-size:13px;margin:8px 0}.signature-line{border-bottom:1px dashed #888;height:32px;margin-top:5px}.extract-status{background:#eef6f0;padding:10px;border-radius:8px;font-size:12px;margin-top:8px;color:var(--green);line-height:1.9;overflow-wrap:anywhere}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Tahoma,Arial,sans-serif}
+header{background:linear-gradient(120deg,#145b3d,#247b70);color:white;text-align:center;padding:22px 12px}
+header .logo{font-size:34px}
+header h2{margin:8px 0;font-size:22px}
+header p{margin:5px;font-size:14px}
+nav{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:15px}
+button,.btn{border:0;border-radius:9px;padding:11px 16px;cursor:pointer;font-family:inherit;font-size:14px}
+nav button{background:white;color:var(--green);border:1px solid var(--border)}
+nav button.active,.primary{background:var(--green);color:white}
+.secondary{background:#e8f0eb;color:var(--green)}
+.danger{background:#b83b3b;color:white}
+.blue{background:var(--blue);color:white}
+.container{max-width:1100px;margin:12px auto;padding:12px}
+.panel{background:white;border:1px solid var(--border);border-radius:13px;padding:18px;margin-bottom:15px;box-shadow:0 2px 8px #173c2510}
+h3{color:var(--green);margin-top:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+label{display:block;font-size:13px;font-weight:bold;margin-bottom:7px}
+input,select,textarea{width:100%;padding:12px;border:1px solid #ccd9d0;border-radius:8px;font-family:inherit;font-size:14px;background:white}
+input:focus,textarea:focus{outline:2px solid #b4d9c2}
+.field{margin-bottom:13px}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:700px}
+th{background:#e5f0e9;color:var(--green)}
+td,th{border:1px solid var(--border);padding:11px 8px;text-align:center;font-size:13px;vertical-align:middle}
+td.subject{text-align:right;min-width:170px}
+.small{font-size:12px;color:#64746a}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.stat{background:#eef6f0;border-radius:10px;padding:15px;text-align:center}
+.stat strong{display:block;font-size:25px;color:var(--green);margin-top:8px}
+.hidden{display:none!important}
+footer{text-align:center;padding:20px;color:#65766c;font-size:12px}
+.report-head{text-align:center;border-bottom:3px double var(--gold);padding-bottom:15px;margin-bottom:18px}
+.report-head h2{color:var(--green)}
+.notice{background:#fff8e9;border:1px solid #ead8a8;padding:12px;border-radius:8px;font-size:13px}
+.qr-mini{display:flex;justify-content:center;align-items:center;min-width:85px;min-height:85px}
+.qr-mini img,.qr-mini canvas{max-width:80px!important;max-height:80px!important}
+.qr-uploaded{width:82px;height:82px;object-fit:contain;display:block;margin:auto;background:#fff}
+.file-status{font-size:12px;color:var(--green);margin-top:5px}
+.modal{position:fixed;inset:0;background:#0009;z-index:9999;display:flex;align-items:center;justify-content:center;padding:14px}
+.modal-card{background:white;border-radius:14px;padding:18px;width:min(100%,460px);max-height:90vh;overflow:auto;text-align:center}
+.modal-card h3{margin-top:0}
+#qrDisplay{display:flex;justify-content:center;align-items:center;padding:15px;min-height:230px}
+#qrDisplay img,#qrDisplay canvas{max-width:100%;height:auto}
+.pdf-frame{width:100%;height:55vh;border:1px solid var(--border);border-radius:8px}
+.report-actions{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+.report-actions button{padding:8px 10px;font-size:12px}
+.qr-upload-input{display:none!important}
+.qr-upload-note{font-size:11px;color:#64746a;margin-top:5px}
+.search-results{margin-top:15px}
+.search-results table{min-width:850px}
+.approval-area{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:35px;page-break-inside:avoid}
+.approval-item{border:1px solid var(--border);border-radius:12px;padding:17px;text-align:center;background:#fbfdfb;min-height:155px}
+.approval-item .approval-icon{font-size:27px;margin-bottom:8px}
+.approval-item h4{color:var(--green);margin:5px 0 12px;font-size:14px}
+.approval-item p{font-size:13px;margin:8px 0}
+.signature-line{border-bottom:1px dashed #888;height:32px;margin-top:5px}
+.extract-status{background:#eef6f0;padding:10px;border-radius:8px;font-size:12px;margin-top:8px;color:var(--green);line-height:1.9;overflow-wrap:anywhere}
 td.subject,td.entity-cell{direction:rtl;text-align:right;white-space:normal;overflow-wrap:anywhere;word-break:normal;line-height:1.8;unicode-bidi:plaintext}
-#reportTable{table-layout:fixed;width:100%;min-width:0}#reportTable th:nth-child(1){width:5%}#reportTable th:nth-child(2){width:28%}#reportTable th:nth-child(3){width:27%}#reportTable th:nth-child(4){width:13%}#reportTable th:nth-child(5){width:15%}#reportTable th:nth-child(6){width:12%}#reportTable td{white-space:normal;overflow-wrap:anywhere;line-height:1.8}#reportTable td:nth-child(4){direction:ltr;unicode-bidi:embed;white-space:nowrap}#reportTable td:nth-child(5),#reportTable td:nth-child(6){text-align:center}#reportTable td:nth-child(2),#reportTable td:nth-child(3){direction:rtl;text-align:right;unicode-bidi:plaintext}
-@media(max-width:600px){.container{padding:8px}.panel{padding:13px}header h2{font-size:19px}.approval-area{grid-template-columns:1fr}}
-@media print{@page{size:A4 portrait;margin:10mm}body{background:white}header,nav,.no-print,footer,.modal{display:none!important}.container{max-width:none;margin:0;padding:0}.panel{box-shadow:none;border:0;padding:5px}.report-head{display:block!important}table{min-width:0!important;width:100%}th,td{font-size:10px;padding:5px 3px}.report-head h2{font-size:19px}.qr-mini img,.qr-mini canvas,.qr-uploaded{max-width:65px!important;max-height:65px!important}.report-actions button,.qr-upload-note{display:none!important}.report-actions .pdf-label{display:inline!important}.approval-area{grid-template-columns:1fr 1fr;gap:12px}.approval-item{border:1px solid #aaa;background:white;min-height:140px}#reportTable{table-layout:fixed!important}#reportTable td{font-size:9px;line-height:1.7;overflow-wrap:anywhere;word-break:normal}#reportTable td:nth-child(2),#reportTable td:nth-child(3){text-align:right}}
+#reportTable{table-layout:fixed;width:100%;min-width:0}
+#reportTable th:nth-child(1){width:5%}
+#reportTable th:nth-child(2){width:28%}
+#reportTable th:nth-child(3){width:27%}
+#reportTable th:nth-child(4){width:13%}
+#reportTable th:nth-child(5){width:15%}
+#reportTable th:nth-child(6){width:12%}
+#reportTable td{white-space:normal;overflow-wrap:anywhere;line-height:1.8}
+#reportTable td:nth-child(4){direction:ltr;unicode-bidi:embed;white-space:nowrap}
+#reportTable td:nth-child(5),#reportTable td:nth-child(6){text-align:center}
+#reportTable td:nth-child(2),#reportTable td:nth-child(3){direction:rtl;text-align:right;unicode-bidi:plaintext}
+@media(max-width:600px){
+.container{padding:8px}
+.panel{padding:13px}
+header h2{font-size:19px}
+.approval-area{grid-template-columns:1fr}
+}
+@media print{
+@page{size:A4 portrait;margin:10mm}
+body{background:white}
+header,nav,.no-print,footer,.modal{display:none!important}
+.container{max-width:none;margin:0;padding:0}
+.panel{box-shadow:none;border:0;padding:5px}
+.report-head{display:block!important}
+table{min-width:0!important;width:100%}
+th,td{font-size:10px;padding:5px 3px}
+.report-head h2{font-size:19px}
+.qr-mini img,.qr-mini canvas,.qr-uploaded{max-width:65px!important;max-height:65px!important}
+.report-actions button,.qr-upload-note{display:none!important}
+.report-actions .pdf-label{display:inline!important}
+.approval-area{grid-template-columns:1fr 1fr;gap:12px}
+.approval-item{border:1px solid #aaa;background:white;min-height:140px}
+#reportTable{table-layout:fixed!important}
+#reportTable td{font-size:9px;line-height:1.7;overflow-wrap:anywhere;word-break:normal}
+#reportTable td:nth-child(2),#reportTable td:nth-child(3){text-align:right}
+}
 </style>
 </head>
 <body>
-<header><div class="logo">✉️</div><div>وزارة التعليم</div><div>الإدارة العامة للتعليم بمنطقة الجوف</div><h2>منصة سجل البريد الوارد والصادر</h2><p>مدرسة عبدالله بن مسعود</p></header>
+
+<header>
+<div class="logo">✉️</div>
+<div>وزارة التعليم</div>
+<div>الإدارة العامة للتعليم بمنطقة الجوف</div>
+<h2>منصة سجل البريد الوارد والصادر</h2>
+<p>مدرسة عبدالله بن مسعود</p>
+</header>
+
 <nav class="no-print">
-<button class="active" onclick="showPage('home',this)">الرئيسية</button><button onclick="showPage('incoming',this)">📥 البريد الوارد</button><button onclick="showPage('outgoing',this)">📤 البريد الصادر</button><button onclick="showPage('reports',this)">📊 التقارير</button><button onclick="showPage('backup',this)">💾 النسخ الاحتياطي</button>
+<button class="active" onclick="showPage('home',this)">الرئيسية</button>
+<button onclick="showPage('incoming',this)">📥 البريد الوارد</button>
+<button onclick="showPage('outgoing',this)">📤 البريد الصادر</button>
+<button onclick="showPage('reports',this)">📊 التقارير</button>
+<button onclick="showPage('backup',this)">💾 النسخ الاحتياطي</button>
 </nav>
+
 <main class="container">
+
 <section id="home" class="page">
-<div class="panel" style="text-align:center"><h3>مرحباً بك في منصة سجل البريد</h3><p>نظام مبسط لتسجيل وأرشفة الخطابات الواردة والصادرة</p></div>
-<div class="stats"><div class="stat">إجمالي الوارد<strong id="homeIn">0</strong></div><div class="stat">إجمالي الصادر<strong id="homeOut">0</strong></div><div class="stat">إجمالي الخطابات<strong id="homeAll">0</strong></div></div>
-<div class="grid" style="margin-top:15px"><button class="primary" onclick="go('incoming')">📥 تسجيل بريد وارد</button><button class="blue" onclick="go('outgoing')">📤 تسجيل بريد صادر</button><button class="secondary" onclick="go('reports')">📊 استخراج التقارير</button></div>
-<div class="panel" style="margin-top:18px"><h3>🔎 البحث الشامل في سجل البريد</h3>
-<div class="grid"><div class="field"><label>نطاق البحث</label><select id="globalSearchType" onchange="globalSearch()"><option value="all">الوارد والصادر معًا</option><option value="in">البريد الوارد فقط</option><option value="out">البريد الصادر فقط</option></select></div><div class="field"><label>كلمة البحث</label><input id="globalSearchInput" oninput="globalSearch()" placeholder="اكتب الموضوع أو بشأن أو الرقم أو التاريخ أو الجهة أو نوع المعاملة"></div></div>
-<div class="small" id="searchCount">اكتب كلمة للبحث في جميع بيانات الخطابات.</div><div class="table-wrap search-results"><table id="globalSearchTable"><thead><tr><th>النوع</th><th>رقم الخطاب</th><th>نوع المعاملة</th><th>الموضوع</th><th>الجهة</th><th>التاريخ</th><th>PDF</th><th>الإجراءات</th></tr></thead><tbody><tr><td colspan="8">لا توجد نتائج للعرض</td></tr></tbody></table></div></div>
+<div class="panel" style="text-align:center">
+<h3>مرحباً بك في منصة سجل البريد</h3>
+<p>نظام مبسط لتسجيل وأرشفة الخطابات الواردة والصادرة</p>
+</div>
+<div class="stats">
+<div class="stat">إجمالي الوارد<strong id="homeIn">0</strong></div>
+<div class="stat">إجمالي الصادر<strong id="homeOut">0</strong></div>
+<div class="stat">إجمالي الخطابات<strong id="homeAll">0</strong></div>
+</div>
+<div class="grid" style="margin-top:15px">
+<button class="primary" onclick="go('incoming')">📥 تسجيل بريد وارد</button>
+<button class="blue" onclick="go('outgoing')">📤 تسجيل بريد صادر</button>
+<button class="secondary" onclick="go('reports')">📊 استخراج التقارير</button>
+</div>
+
+<div class="panel" style="margin-top:18px">
+<h3>🔎 البحث الشامل في سجل البريد</h3>
+<div class="grid">
+<div class="field">
+<label>نطاق البحث</label>
+<select id="globalSearchType" onchange="globalSearch()">
+<option value="all">الوارد والصادر معًا</option>
+<option value="in">البريد الوارد فقط</option>
+<option value="out">البريد الصادر فقط</option>
+</select>
+</div>
+<div class="field">
+<label>كلمة البحث</label>
+<input id="globalSearchInput" oninput="globalSearch()" placeholder="اكتب الموضوع أو بشأن أو الرقم أو التاريخ أو الجهة أو نوع المعاملة">
+</div>
+</div>
+<div class="small" id="searchCount">اكتب كلمة للبحث في جميع بيانات الخطابات.</div>
+<div class="table-wrap search-results">
+<table id="globalSearchTable">
+<thead><tr><th>النوع</th><th>رقم الخطاب</th><th>نوع المعاملة</th><th>الموضوع</th><th>الجهة</th><th>التاريخ</th><th>PDF</th><th>الإجراءات</th></tr></thead>
+<tbody><tr><td colspan="8">لا توجد نتائج للعرض</td></tr></tbody>
+</table>
+</div>
+</div>
 </section>
 
-<section id="incoming" class="page hidden"><div class="panel"><h3>📥 سجل البريد الوارد</h3>
-<form id="inForm" onsubmit="saveRecord(event,'in')"><input type="hidden" id="inId"><div class="grid">
+<section id="incoming" class="page hidden">
+<div class="panel">
+<h3>📥 سجل البريد الوارد</h3>
+<form id="inForm" onsubmit="saveRecord(event,'in')">
+<input type="hidden" id="inId">
+<div class="grid">
 <div class="field"><label>رقم المعاملة</label><input id="inNumber" placeholder="رقم المعاملة"></div>
 <div class="field"><label>نوع المعاملة</label><input id="inTransactionType" placeholder="مثال: تعميم، خطاب، قرار، توجيه"></div>
 <div class="field"><label>موضوع الخطاب</label><input id="inSubject" required placeholder="موضوع الخطاب"></div>
 <div class="field"><label>الجهة الوارد منها</label><input id="inEntity" required placeholder="اسم الجهة"></div>
 <div class="field"><label>التاريخ الهجري</label><input id="inDate" required placeholder="1448/03/07" pattern="[0-9]{4}/[0-9]{2}/[0-9]{2}" dir="ltr"></div>
-<div class="field"><label>إرفاق ملف PDF (اختياري)</label><input type="file" id="inPdf" accept="application/pdf,.pdf"><div id="inPdfStatus" class="file-status"></div><div class="actions"><button type="button" class="blue" onclick="extractPdf('in')">استخراج البيانات من PDF</button></div><div id="inExtractStatus"></div></div>
-</div><div class="actions"><button class="primary" type="submit">حفظ الخطاب</button><button class="secondary" type="button" onclick="resetForm('in')">إلغاء</button></div></form></div>
-<div class="panel"><h3>قائمة البريد الوارد</h3><input placeholder="بحث في الرقم أو نوع المعاملة أو الموضوع أو الجهة أو التاريخ" oninput="searchTable(this,'inTable')"><div class="table-wrap"><table id="inTable"><thead><tr><th>م</th><th>رقم المعاملة</th><th>نوع المعاملة</th><th>موضوع الخطاب</th><th>الجهة الوارد منها</th><th>التاريخ</th><th>QR</th><th>PDF</th><th class="no-print">الإجراءات</th></tr></thead><tbody></tbody></table></div></div>
+<div class="field">
+<label>إرفاق ملف PDF (اختياري)</label>
+<input type="file" id="inPdf" accept="application/pdf,.pdf">
+<div id="inPdfStatus" class="file-status"></div>
+<div class="actions"><button type="button" class="blue" onclick="extractPdf('in')">استخراج البيانات من PDF</button></div>
+<div id="inExtractStatus"></div>
+</div>
+</div>
+<div class="actions">
+<button class="primary" type="submit">حفظ الخطاب</button>
+<button class="secondary" type="button" onclick="resetForm('in')">إلغاء</button>
+</div>
+</form>
+</div>
+
+<div class="panel">
+<h3>قائمة البريد الوارد</h3>
+<input placeholder="بحث في الرقم أو نوع المعاملة أو الموضوع أو الجهة أو التاريخ" oninput="searchTable(this,'inTable')">
+<div class="table-wrap">
+<table id="inTable">
+<thead><tr><th>م</th><th>رقم المعاملة</th><th>نوع المعاملة</th><th>موضوع الخطاب</th><th>الجهة الوارد منها</th><th>التاريخ</th><th>QR</th><th>PDF</th><th class="no-print">الإجراءات</th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
 </section>
 
-<section id="outgoing" class="page hidden"><div class="panel"><h3>📤 سجل البريد الصادر</h3>
-<form id="outForm" onsubmit="saveRecord(event,'out')"><input type="hidden" id="outId"><div class="grid">
+<section id="outgoing" class="page hidden">
+<div class="panel">
+<h3>📤 سجل البريد الصادر</h3>
+<form id="outForm" onsubmit="saveRecord(event,'out')">
+<input type="hidden" id="outId">
+<div class="grid">
 <div class="field"><label>رقم المعاملة</label><input id="outNumber" placeholder="رقم المعاملة"></div>
 <div class="field"><label>نوع المعاملة</label><input id="outTransactionType" placeholder="مثال: خطاب، تعميم، إفادة، طلب"></div>
 <div class="field"><label>موضوع الخطاب</label><input id="outSubject" required placeholder="موضوع الخطاب"></div>
 <div class="field"><label>الجهة الصادر إليها</label><input id="outEntity" required placeholder="اسم الجهة"></div>
 <div class="field"><label>التاريخ الهجري</label><input id="outDate" required placeholder="1448/03/07" pattern="[0-9]{4}/[0-9]{2}/[0-9]{2}" dir="ltr"></div>
-<div class="field"><label>إرفاق ملف PDF (اختياري)</label><input type="file" id="outPdf" accept="application/pdf,.pdf"><div id="outPdfStatus" class="file-status"></div><div class="actions"><button type="button" class="blue" onclick="extractPdf('out')">استخراج البيانات من PDF</button></div><div id="outExtractStatus"></div></div>
-</div><div class="actions"><button class="primary" type="submit">حفظ الخطاب</button><button class="secondary" type="button" onclick="resetForm('out')">إلغاء</button></div></form></div>
-<div class="panel"><h3>قائمة البريد الصادر</h3><input placeholder="بحث في الرقم أو نوع المعاملة أو الموضوع أو الجهة أو التاريخ" oninput="searchTable(this,'outTable')"><div class="table-wrap"><table id="outTable"><thead><tr><th>م</th><th>رقم المعاملة</th><th>نوع المعاملة</th><th>موضوع الخطاب</th><th>الجهة الصادر إليها</th><th>التاريخ</th><th>QR</th><th>PDF</th><th class="no-print">الإجراءات</th></tr></thead><tbody></tbody></table></div></div>
+<div class="field">
+<label>إرفاق ملف PDF (اختياري)</label>
+<input type="file" id="outPdf" accept="application/pdf,.pdf">
+<div id="outPdfStatus" class="file-status"></div>
+<div class="actions"><button type="button" class="blue" onclick="extractPdf('out')">استخراج البيانات من PDF</button></div>
+<div id="outExtractStatus"></div>
+</div>
+</div>
+<div class="actions">
+<button class="primary" type="submit">حفظ الخطاب</button>
+<button class="secondary" type="button" onclick="resetForm('out')">إلغاء</button>
+</div>
+</form>
+</div>
+
+<div class="panel">
+<h3>قائمة البريد الصادر</h3>
+<input placeholder="بحث في الرقم أو نوع المعاملة أو الموضوع أو الجهة أو التاريخ" oninput="searchTable(this,'outTable')">
+<div class="table-wrap">
+<table id="outTable">
+<thead><tr><th>م</th><th>رقم المعاملة</th><th>نوع المعاملة</th><th>موضوع الخطاب</th><th>الجهة الصادر إليها</th><th>التاريخ</th><th>QR</th><th>PDF</th><th class="no-print">الإجراءات</th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
 </section>
 
-<section id="reports" class="page hidden"><div class="panel no-print"><h3>📊 التقارير والإحصائيات</h3><div class="grid">
-<div class="field"><label>نوع التقرير</label><select id="reportType"><option value="in">البريد الوارد فقط</option><option value="out">البريد الصادر فقط</option></select></div>
-<div class="field"><label>الفترة</label><select id="period" onchange="periodChanged()"><option value="day">يومي</option><option value="week">أسبوعي</option><option value="month">شهري</option><option value="year">سنوي</option><option value="custom">من تاريخ إلى تاريخ</option><option value="all">كامل السجل</option></select></div>
+<section id="reports" class="page hidden">
+<div class="panel no-print">
+<h3>📊 التقارير والإحصائيات</h3>
+<div class="grid">
+<div class="field">
+<label>نوع التقرير</label>
+<select id="reportType"><option value="in">البريد الوارد فقط</option><option value="out">البريد الصادر فقط</option></select>
+</div>
+<div class="field">
+<label>الفترة</label>
+<select id="period" onchange="periodChanged()">
+<option value="day">يومي</option><option value="week">أسبوعي</option><option value="month">شهري</option><option value="year">سنوي</option><option value="custom">من تاريخ إلى تاريخ</option><option value="all">كامل السجل</option>
+</select>
+</div>
 <div class="field" id="singleDate"><label>التاريخ الهجري المرجعي</label><input id="refDate" placeholder="1448/03/07" dir="ltr"></div>
-<div class="field hidden" id="fromField"><label>من تاريخ</label><input id="fromDate" placeholder="1448/03/01" dir="ltr"></div><div class="field hidden" id="toField"><label>إلى تاريخ</label><input id="toDate" placeholder="1448/03/30" dir="ltr"></div>
-</div><div class="actions"><button class="primary" onclick="generateReport()">عرض التقرير</button><button class="blue" onclick="window.print()">طباعة / حفظ PDF</button></div></div>
-<div class="panel" id="reportArea"><div class="report-head"><div>وزارة التعليم</div><div>الإدارة العامة للتعليم بمنطقة الجوف</div><div>مدرسة عبدالله بن مسعود</div><h2 id="reportTitle">تقرير البريد الوارد</h2><p id="reportPeriod">الفترة المحددة</p></div>
-<div class="stats"><div class="stat">عدد الخطابات<strong id="reportCount">0</strong></div><div class="stat">عدد المرفقات<strong id="reportFiles">0</strong></div></div>
-<div class="table-wrap" style="margin-top:18px"><table id="reportTable"><thead><tr><th>م</th><th>موضوع الخطاب</th><th>الجهة</th><th>التاريخ</th><th>QR</th><th>PDF</th></tr></thead><tbody></tbody></table></div>
-<div class="approval-area"><div class="approval-item"><div class="approval-icon">🖊️</div><h4>مُعدّ التقرير</h4><p>مساعد إداري / خالد شاقي الرويلي</p><p>التوقيع:</p><div class="signature-line"></div></div><div class="approval-item"><div class="approval-icon">🏅</div><h4>اعتماد مدير المدرسة</h4><p>عويد عشبان الرويلي</p><p>التوقيع:</p><div class="signature-line"></div></div></div>
-</div></section>
+<div class="field hidden" id="fromField"><label>من تاريخ</label><input id="fromDate" placeholder="1448/03/01" dir="ltr"></div>
+<div class="field hidden" id="toField"><label>إلى تاريخ</label><input id="toDate" placeholder="1448/03/30" dir="ltr"></div>
+</div>
+<div class="actions">
+<button class="primary" onclick="generateReport()">عرض التقرير</button>
+<button class="blue" onclick="window.print()">طباعة / حفظ PDF</button>
+</div>
+</div>
 
-<section id="backup" class="page hidden"><div class="panel"><h3>💾 النسخ الاحتياطي</h3><p>احتفظ بنسخة من سجلاتك ومرفقاتك بشكل دوري.</p><div class="actions"><button class="primary" onclick="exportBackup()">تصدير نسخة احتياطية</button><label class="btn secondary">استعادة نسخة احتياطية<input type="file" accept=".json,application/json" onchange="importBackup(event)" hidden></label></div><p class="notice">تنبيه: البيانات محفوظة محليًا في هذا المتصفح والجهاز. النسخة الاحتياطية ضرورية عند تغيير الجهاز أو المتصفح أو مسح بياناته.</p></div></section>
-<section id="recordView" class="page hidden"><div class="panel"><h3>تفاصيل الخطاب</h3><div id="recordDetails"></div><div class="actions no-print"><button class="primary" onclick="window.print()">طباعة التفاصيل</button><button class="secondary" onclick="showPage('home')">الرئيسية</button></div></div></section>
+<div class="panel" id="reportArea">
+<div class="report-head">
+<div>وزارة التعليم</div>
+<div>الإدارة العامة للتعليم بمنطقة الجوف</div>
+<div>مدرسة عبدالله بن مسعود</div>
+<h2 id="reportTitle">تقرير البريد الوارد</h2>
+<p id="reportPeriod">الفترة المحددة</p>
+</div>
+<div class="stats">
+<div class="stat">عدد الخطابات<strong id="reportCount">0</strong></div>
+<div class="stat">عدد المرفقات<strong id="reportFiles">0</strong></div>
+</div>
+<div class="table-wrap" style="margin-top:18px">
+<table id="reportTable">
+<thead><tr><th>م</th><th>موضوع الخطاب</th><th>الجهة</th><th>التاريخ</th><th>QR</th><th>PDF</th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
+<div class="approval-area">
+<div class="approval-item">
+<div class="approval-icon">🖊️</div>
+<h4>مُعدّ التقرير</h4>
+<p>مساعد إداري / خالد شاقي الرويلي</p>
+<p>التوقيع:</p>
+<div class="signature-line"></div>
+</div>
+<div class="approval-item">
+<div class="approval-icon">🏅</div>
+<h4>اعتماد مدير المدرسة</h4>
+<p>عويد عشبان الرويلي</p>
+<p>التوقيع:</p>
+<div class="signature-line"></div>
+</div>
+</div>
+</div>
+</section>
+
+<section id="backup" class="page hidden">
+<div class="panel">
+<h3>💾 النسخ الاحتياطي</h3>
+<p>احتفظ بنسخة من سجلاتك ومرفقاتك بشكل دوري.</p>
+<div class="actions">
+<button class="primary" onclick="exportBackup()">تصدير نسخة احتياطية</button>
+<label class="btn secondary">استعادة نسخة احتياطية<input type="file" accept=".json,application/json" onchange="importBackup(event)" hidden></label>
+</div>
+<p class="notice">تنبيه: البيانات محفوظة محليًا في هذا المتصفح والجهاز. النسخة الاحتياطية ضرورية عند تغيير الجهاز أو المتصفح أو مسح بياناته.</p>
+</div>
+</section>
+
+<section id="recordView" class="page hidden">
+<div class="panel">
+<h3>تفاصيل الخطاب</h3>
+<div id="recordDetails"></div>
+<div class="actions no-print">
+<button class="primary" onclick="window.print()">طباعة التفاصيل</button>
+<button class="secondary" onclick="showPage('home')">الرئيسية</button>
+</div>
+</div>
+</section>
+
 </main>
+
 <footer>إعداد وتصميم: مساعد إداري / خالد شاقي الرويلي</footer>
-<div id="qrModal" class="modal hidden"><div class="modal-card"><h3>رمز QR للخطاب</h3><div id="qrDisplay"></div><div id="qrCaption" class="small"></div><div class="actions" style="justify-content:center"><button class="primary" onclick="window.print()">طباعة QR</button><button class="secondary" onclick="closeQR()">إغلاق</button></div></div></div>
-<div id="pdfModal" class="modal hidden"><div class="modal-card" style="width:min(100%,850px)"><h3 id="pdfTitle">عرض ملف PDF</h3><iframe id="pdfFrame" class="pdf-frame" title="ملف PDF"></iframe><div class="actions" style="justify-content:center"><a id="pdfOpenLink" class="btn primary" target="_blank" rel="noopener">فتح PDF في صفحة مستقلة</a><a id="pdfDownloadLink" class="btn secondary" download="خطاب.pdf">تنزيل PDF</a><button class="danger" onclick="closePDF()">إغلاق</button></div><p class="small">إذا لم يظهر الملف داخل النافذة، استخدم زر «فتح PDF في صفحة مستقلة».</p></div></div>
+
+<div id="qrModal" class="modal hidden">
+<div class="modal-card">
+<h3>رمز QR للخطاب</h3>
+<div id="qrDisplay"></div>
+<div id="qrCaption" class="small"></div>
+<div class="actions" style="justify-content:center">
+<button class="primary" onclick="window.print()">طباعة QR</button>
+<button class="secondary" onclick="closeQR()">إغلاق</button>
+</div>
+</div>
+</div>
+
+<div id="pdfModal" class="modal hidden">
+<div class="modal-card" style="width:min(100%,850px)">
+<h3 id="pdfTitle">عرض ملف PDF</h3>
+<iframe id="pdfFrame" class="pdf-frame" title="ملف PDF"></iframe>
+<div class="actions" style="justify-content:center">
+<a id="pdfOpenLink" class="btn primary" target="_blank" rel="noopener">فتح PDF في صفحة مستقلة</a>
+<a id="pdfDownloadLink" class="btn secondary" download="خطاب.pdf">تنزيل PDF</a>
+<button class="danger" onclick="closePDF()">إغلاق</button>
+</div>
+<p class="small">إذا لم يظهر الملف داخل النافذة، استخدم زر «فتح PDF في صفحة مستقلة».</p>
+</div>
+</div>
 
 <script>
 const KEY='school_mail_register_v1';
@@ -96,224 +370,1074 @@ function migrateRecord(r){
  if(r.reportQRImage===undefined)r.reportQRImage=null;
  return r;
 }
+
 function load(){
  try{
   const x=JSON.parse(localStorage.getItem(KEY));
   if(x&&Array.isArray(x.in)&&Array.isArray(x.out)){
-   records=x;records.in.forEach(migrateRecord);records.out.forEach(migrateRecord);
+   records=x;
+   records.in.forEach(migrateRecord);
+   records.out.forEach(migrateRecord);
   }
  }catch(e){alert('تعذر قراءة السجلات المحفوظة.')}
  renderAll();
 }
+
 function persist(){
- try{localStorage.setItem(KEY,JSON.stringify(records));return true}
- catch(e){alert('تعذر الحفظ بسبب امتلاء مساحة المتصفح. صدّر نسخة احتياطية، وقد تحتاج إلى تقليل حجم ملفات PDF أو صور QR.');return false}
+ try{
+  localStorage.setItem(KEY,JSON.stringify(records));
+  return true;
+ }catch(e){
+  alert('تعذر الحفظ بسبب امتلاء مساحة المتصفح. صدّر نسخة احتياطية، وقد تحتاج إلى تقليل حجم ملفات PDF أو صور QR.');
+  return false;
+ }
 }
-function go(id){const buttons=[...document.querySelectorAll('nav button')];showPage(id,buttons.find(b=>b.getAttribute('onclick')?.includes("'"+id+"'")))}
+
+function go(id){
+ const buttons=[...document.querySelectorAll('nav button')];
+ showPage(id,buttons.find(b=>b.getAttribute('onclick')?.includes("'"+id+"'")));
+}
+
 function showPage(id,btn){
- document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');
- document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');
- if(id==='home'){updateHome();globalSearch()}if(id==='incoming')renderTable('in');if(id==='outgoing')renderTable('out');
+ document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));
+ document.getElementById(id).classList.remove('hidden');
+ document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+ if(btn)btn.classList.add('active');
+ if(id==='home'){updateHome();globalSearch()}
+ if(id==='incoming')renderTable('in');
+ if(id==='outgoing')renderTable('out');
 }
+
 function validDate(s){return /^\d{4}\/\d{2}\/\d{2}$/.test(s)}
+
 function saveRecord(e,type){
- e.preventDefault();const p=type,id=document.getElementById(p+'Id').value;
+ e.preventDefault();
+ const p=type,id=document.getElementById(p+'Id').value;
  const number=document.getElementById(p+'Number').value.trim();
  const transactionType=document.getElementById(p+'TransactionType').value.trim();
- const subject=document.getElementById(p+'Subject').value.trim(),entity=document.getElementById(p+'Entity').value.trim(),date=document.getElementById(p+'Date').value.trim();
+ const subject=document.getElementById(p+'Subject').value.trim();
+ const entity=document.getElementById(p+'Entity').value.trim();
+ const date=document.getElementById(p+'Date').value.trim();
  const file=document.getElementById(p+'Pdf').files[0];
+
  if(!validDate(date)){alert('اكتب التاريخ بالصيغة 1448/03/07 بالأرقام فقط');return}
+
  const old=records[p].find(x=>x.id===id);
- if(file&&file.type!=='application/pdf'&&!file.name.toLowerCase().endsWith('.pdf')){alert('يرجى اختيار ملف PDF فقط');return}
+
+ if(file&&file.type!=='application/pdf'&&!file.name.toLowerCase().endsWith('.pdf')){
+  alert('يرجى اختيار ملف PDF فقط');return;
+ }
+
  if(file&&file.size>3*1024*1024&&!confirm('حجم الملف أكبر من 3 ميجابايت. قد لا تتسع له مساحة المتصفح. هل تريد محاولة حفظه؟'))return;
+
  const save=pdf=>{
-  const item={id:id||String(Date.now())+'-'+Math.random().toString(36).slice(2,7),number,transactionType,subject,entity,date,pdf:pdf!==undefined?pdf:(old?.pdf||null),pdfName:file?.name||(old?.pdfName||''),reportQRImage:old?.reportQRImage||null};
-  const previous=[...records[p]];if(old)records[p]=records[p].map(x=>x.id===id?item:x);else records[p].push(item);
-  if(!persist()){records[p]=previous;return}resetForm(p);renderAll();alert('تم حفظ الخطاب بنجاح');
+  const item={
+   id:id||String(Date.now())+'-'+Math.random().toString(36).slice(2,7),
+   number,transactionType,subject,entity,date,
+   pdf:pdf!==undefined?pdf:(old?.pdf||null),
+   pdfName:file?.name||(old?.pdfName||''),
+   reportQRImage:old?.reportQRImage||null
+  };
+  const previous=[...records[p]];
+  if(old)records[p]=records[p].map(x=>x.id===id?item:x);
+  else records[p].push(item);
+  if(!persist()){records[p]=previous;return}
+  resetForm(p);
+  renderAll();
+  alert('تم حفظ الخطاب بنجاح');
  };
- if(file){const r=new FileReader();r.onload=()=>save(r.result);r.onerror=()=>alert('تعذر قراءة الملف');r.readAsDataURL(file)}else save(undefined);
+
+ if(file){
+  const r=new FileReader();
+  r.onload=()=>save(r.result);
+  r.onerror=()=>alert('تعذر قراءة الملف');
+  r.readAsDataURL(file);
+ }else save(undefined);
 }
-function resetForm(p){document.getElementById(p+'Form').reset();document.getElementById(p+'Id').value='';document.getElementById(p+'PdfStatus').textContent='';document.getElementById(p+'ExtractStatus').textContent=''}
+
+function resetForm(p){
+ document.getElementById(p+'Form').reset();
+ document.getElementById(p+'Id').value='';
+ document.getElementById(p+'PdfStatus').textContent='';
+ document.getElementById(p+'ExtractStatus').textContent='';
+}
+
 function editRecord(p,id){
- const x=records[p].find(r=>r.id===id);if(!x)return;
- document.getElementById(p+'Id').value=x.id;document.getElementById(p+'Number').value=x.number||'';
- document.getElementById(p+'TransactionType').value=x.transactionType||'';document.getElementById(p+'Subject').value=x.subject||'';
- document.getElementById(p+'Entity').value=x.entity||'';document.getElementById(p+'Date').value=x.date||'';
+ const x=records[p].find(r=>r.id===id);
+ if(!x)return;
+ document.getElementById(p+'Id').value=x.id;
+ document.getElementById(p+'Number').value=x.number||'';
+ document.getElementById(p+'TransactionType').value=x.transactionType||'';
+ document.getElementById(p+'Subject').value=x.subject||'';
+ document.getElementById(p+'Entity').value=x.entity||'';
+ document.getElementById(p+'Date').value=x.date||'';
  document.getElementById(p+'PdfStatus').textContent=x.pdf?'المرفق الحالي: '+(x.pdfName||'ملف PDF')+' — اترك خانة الملف فارغة للاحتفاظ به.':'لا يوجد مرفق حالي.';
  document.getElementById(p+'Form').scrollIntoView({behavior:'smooth'});
 }
-function deleteRecord(p,id){if(!confirm('هل أنت متأكد من حذف هذا الخطاب؟'))return;const previous=[...records[p]];records[p]=records[p].filter(x=>x.id!==id);if(!persist()){records[p]=previous;return}renderAll()}
-function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function makeQR(x,p){
- const data={type:p==='in'?'وارد':'صادر',number:x.number||'',transactionType:x.transactionType||'',subject:x.subject,entity:x.entity,date:x.date};
- const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(data))));return location.origin+location.pathname+'#record='+encodeURIComponent(encoded);
+
+function deleteRecord(p,id){
+ if(!confirm('هل أنت متأكد من حذف هذا الخطاب؟'))return;
+ const previous=[...records[p]];
+ records[p]=records[p].filter(x=>x.id!==id);
+ if(!persist()){records[p]=previous;return}
+ renderAll();
 }
-function showQR(p,id){const x=records[p].find(r=>r.id===id);if(!x)return;const box=document.getElementById('qrDisplay');box.innerHTML='';if(typeof QRCode==='undefined'){alert('تعذر تحميل مكتبة QR. تحقق من اتصال الإنترنت ثم أعد المحاولة.');return}new QRCode(box,{text:makeQR(x,p),width:220,height:220,correctLevel:QRCode.CorrectLevel.M});document.getElementById('qrCaption').textContent=x.subject+' — '+x.date;document.getElementById('qrModal').classList.remove('hidden')}
+
+function escapeHTML(s){
+ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function makeQR(x,p){
+ const data={
+  type:p==='in'?'وارد':'صادر',
+  number:x.number||'',
+  transactionType:x.transactionType||'',
+  subject:x.subject,
+  entity:x.entity,
+  date:x.date
+ };
+ const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+ return location.origin+location.pathname+'#record='+encodeURIComponent(encoded);
+}
+
+function showQR(p,id){
+ const x=records[p].find(r=>r.id===id);
+ if(!x)return;
+ const box=document.getElementById('qrDisplay');
+ box.innerHTML='';
+ if(typeof QRCode==='undefined'){
+  alert('تعذر تحميل مكتبة QR. تحقق من اتصال الإنترنت ثم أعد المحاولة.');
+  return;
+ }
+ new QRCode(box,{text:makeQR(x,p),width:220,height:220,correctLevel:QRCode.CorrectLevel.M});
+ document.getElementById('qrCaption').textContent=x.subject+' — '+x.date;
+ document.getElementById('qrModal').classList.remove('hidden');
+}
+
 function closeQR(){document.getElementById('qrModal').classList.add('hidden')}
-function dataURLToBlob(dataURL){const parts=dataURL.split(','),mime=(parts[0].match(/:(.*?);/)||[])[1]||'application/pdf',binary=atob(parts[1]),bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return new Blob([bytes],{type:mime})}
-function openPDF(p,id){const x=records[p].find(r=>r.id===id);if(!x||!x.pdf){alert('لا يوجد ملف PDF مرفق بهذا الخطاب.');return}try{if(currentPdfURL)URL.revokeObjectURL(currentPdfURL);const blob=dataURLToBlob(x.pdf);currentPdfURL=URL.createObjectURL(blob);document.getElementById('pdfTitle').textContent=x.pdfName||'ملف PDF';document.getElementById('pdfFrame').src=currentPdfURL;document.getElementById('pdfOpenLink').href=currentPdfURL;document.getElementById('pdfDownloadLink').href=currentPdfURL;document.getElementById('pdfDownloadLink').download=x.pdfName||'خطاب.pdf';document.getElementById('pdfModal').classList.remove('hidden')}catch(e){alert('تعذر فتح ملف PDF. قد يكون الملف غير صالح أو لم يُحفظ بشكل كامل.')}}
-function closePDF(){document.getElementById('pdfModal').classList.add('hidden');document.getElementById('pdfFrame').src='about:blank';if(currentPdfURL){URL.revokeObjectURL(currentPdfURL);currentPdfURL=null}}
+
+function dataURLToBlob(dataURL){
+ const parts=dataURL.split(',');
+ const mime=(parts[0].match(/:(.*?);/)||[])[1]||'application/pdf';
+ const binary=atob(parts[1]);
+ const bytes=new Uint8Array(binary.length);
+ for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+ return new Blob([bytes],{type:mime});
+}
+
+function openPDF(p,id){
+ const x=records[p].find(r=>r.id===id);
+ if(!x||!x.pdf){alert('لا يوجد ملف PDF مرفق بهذا الخطاب.');return}
+ try{
+  if(currentPdfURL)URL.revokeObjectURL(currentPdfURL);
+  const blob=dataURLToBlob(x.pdf);
+  currentPdfURL=URL.createObjectURL(blob);
+  document.getElementById('pdfTitle').textContent=x.pdfName||'ملف PDF';
+  document.getElementById('pdfFrame').src=currentPdfURL;
+  document.getElementById('pdfOpenLink').href=currentPdfURL;
+  document.getElementById('pdfDownloadLink').href=currentPdfURL;
+  document.getElementById('pdfDownloadLink').download=x.pdfName||'خطاب.pdf';
+  document.getElementById('pdfModal').classList.remove('hidden');
+ }catch(e){
+  alert('تعذر فتح ملف PDF. قد يكون الملف غير صالح أو لم يُحفظ بشكل كامل.');
+ }
+}
+
+function closePDF(){
+ document.getElementById('pdfModal').classList.add('hidden');
+ document.getElementById('pdfFrame').src='about:blank';
+ if(currentPdfURL){URL.revokeObjectURL(currentPdfURL);currentPdfURL=null}
+}
+
 function renderTable(p){
- const tableId=p==='in'?'inTable':'outTable',body=document.querySelector('#'+tableId+' tbody');body.innerHTML='';
- records[p].forEach((x,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i+1}</td><td>${escapeHTML(x.number||'—')}</td><td>${escapeHTML(x.transactionType||'—')}</td><td class="subject">${escapeHTML(x.subject)}</td><td class="entity-cell">${escapeHTML(x.entity)}</td><td dir="ltr">${escapeHTML(x.date)}</td><td><button class="secondary" onclick="showQR('${p}','${x.id}')">عرض QR</button></td><td>${x.pdf?`<button class="blue" onclick="openPDF('${p}','${x.id}')">فتح PDF</button>`:'<span class="small">لا يوجد مرفق</span>'}</td><td class="no-print"><button class="secondary" onclick="editRecord('${p}','${x.id}')">✏️ تعديل</button> <button class="danger" onclick="deleteRecord('${p}','${x.id}')">🗑️ حذف</button></td>`;body.appendChild(tr)});
+ const tableId=p==='in'?'inTable':'outTable';
+ const body=document.querySelector('#'+tableId+' tbody');
+ body.innerHTML='';
+ records[p].forEach((x,i)=>{
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+  <td>${i+1}</td>
+  <td>${escapeHTML(x.number||'—')}</td>
+  <td>${escapeHTML(x.transactionType||'—')}</td>
+  <td class="subject">${escapeHTML(x.subject)}</td>
+  <td class="entity-cell">${escapeHTML(x.entity)}</td>
+  <td dir="ltr">${escapeHTML(x.date)}</td>
+  <td><button class="secondary" onclick="showQR('${p}','${x.id}')">عرض QR</button></td>
+  <td>${x.pdf?`<button class="blue" onclick="openPDF('${p}','${x.id}')">فتح PDF</button>`:'<span class="small">لا يوجد مرفق</span>'}</td>
+  <td class="no-print">
+  <button class="secondary" onclick="editRecord('${p}','${x.id}')">✏️ تعديل</button>
+  <button class="danger" onclick="deleteRecord('${p}','${x.id}')">🗑️ حذف</button>
+  </td>`;
+  body.appendChild(tr);
+ });
  if(!records[p].length)body.innerHTML='<tr><td colspan="9">لا توجد خطابات مسجلة حتى الآن</td></tr>';
 }
-function renderAll(){renderTable('in');renderTable('out');updateHome();globalSearch()}
-function updateHome(){document.getElementById('homeIn').textContent=records.in.length;document.getElementById('homeOut').textContent=records.out.length;document.getElementById('homeAll').textContent=records.in.length+records.out.length}
-function normalizeText(value){return String(value||'').toLowerCase().replace(/[ًٌٍَُِّْـ]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/\s+/g,' ').trim()}
-function searchTable(input,id){const q=normalizeText(input.value);document.querySelectorAll('#'+id+' tbody tr').forEach(r=>{r.style.display=normalizeText(r.textContent).includes(q)?'':'none'})}
-function globalSearch(){
- const q=normalizeText(document.getElementById('globalSearchInput').value),type=document.getElementById('globalSearchType').value,body=document.querySelector('#globalSearchTable tbody');body.innerHTML='';
- if(!q){body.innerHTML='<tr><td colspan="8">اكتب كلمة للبحث في جميع بيانات الخطابات</td></tr>';document.getElementById('searchCount').textContent='اكتب كلمة للبحث في جميع بيانات الخطابات.';return}
- let results=[];['in','out'].forEach(p=>{if(type!=='all'&&type!==p)return;records[p].forEach(x=>{const searchable=normalizeText([x.number,x.transactionType,x.subject,x.entity,x.date,p==='in'?'وارد':'صادر'].join(' '));if(searchable.includes(q))results.push({p,x})})});
- document.getElementById('searchCount').textContent='عدد النتائج: '+results.length;
- if(!results.length){body.innerHTML='<tr><td colspan="8">لا توجد نتائج مطابقة للبحث</td></tr>';return}
- results.forEach(({p,x})=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${p==='in'?'وارد':'صادر'}</td><td>${escapeHTML(x.number||'—')}</td><td>${escapeHTML(x.transactionType||'—')}</td><td class="subject">${escapeHTML(x.subject)}</td><td class="entity-cell">${escapeHTML(x.entity)}</td><td dir="ltr">${escapeHTML(x.date)}</td><td>${x.pdf?`<button class="blue" onclick="openPDF('${p}','${x.id}')">فتح PDF</button>`:'لا يوجد مرفق'}</td><td><button class="secondary" onclick="showQR('${p}','${x.id}')">QR</button> <button class="secondary" onclick="editRecord('${p}','${x.id}');go('${p==='in'?'incoming':'outgoing'}')">تعديل</button></td>`;body.appendChild(tr)});
+
+function renderAll(){
+ renderTable('in');
+ renderTable('out');
+ updateHome();
+ globalSearch();
 }
-function periodChanged(){const v=document.getElementById('period').value;document.getElementById('singleDate').classList.toggle('hidden',v==='all'||v==='custom');document.getElementById('fromField').classList.toggle('hidden',v!=='custom');document.getElementById('toField').classList.toggle('hidden',v!=='custom')}
-function generateReport(){
- const p=document.getElementById('reportType').value,period=document.getElementById('period').value;let list=[...records[p]],label='';
- if(period==='all')label='كامل السجل';
- if(period==='custom'){const a=document.getElementById('fromDate').value,b=document.getElementById('toDate').value;if(!validDate(a)||!validDate(b)||a>b)return alert('تحقق من تاريخ البداية والنهاية');list=list.filter(x=>x.date>=a&&x.date<=b);label='من '+a+' إلى '+b}
- if(['day','week','month','year'].includes(period)){const d=document.getElementById('refDate').value;if(!validDate(d))return alert('أدخل التاريخ الهجري بالصيغة 1448/03/07');if(period==='day'){list=list.filter(x=>x.date===d);label='اليوم '+d}else if(period==='month'){list=list.filter(x=>x.date.slice(0,7)===d.slice(0,7));label='شهر '+d.slice(0,7)}else if(period==='year'){list=list.filter(x=>x.date.slice(0,4)===d.slice(0,4));label='عام '+d.slice(0,4)}else{alert('لضبط التقرير الأسبوعي بدقة، استخدم خيار «من تاريخ إلى تاريخ» وحدد بداية الأسبوع ونهايته.');return}}
- list.sort((a,b)=>a.date.localeCompare(b.date));document.getElementById('reportTitle').textContent=p==='in'?'تقرير البريد الوارد':'تقرير البريد الصادر';document.getElementById('reportPeriod').textContent=label;document.getElementById('reportCount').textContent=list.length;document.getElementById('reportFiles').textContent=list.filter(x=>x.pdf).length;
- const body=document.querySelector('#reportTable tbody');body.innerHTML='';if(!list.length){body.innerHTML='<tr><td colspan="6">لا توجد خطابات في الفترة المحددة</td></tr>';return}
- list.forEach((x,i)=>{const tr=document.createElement('tr'),qrId='reportQR'+i,qrContent=x.reportQRImage?`<img class="qr-uploaded" src="${x.reportQRImage}" alt="رمز QR المرفق">`:`<div class="qr-mini" id="${qrId}"></div>`;
- tr.innerHTML=`<td>${i+1}</td><td class="subject">${escapeHTML(x.subject)}</td><td class="entity-cell">${escapeHTML(x.entity)}</td><td dir="ltr">${escapeHTML(x.date)}</td><td>${qrContent}<div class="report-actions no-print"><button class="secondary" onclick="document.getElementById('qrFile_${i}').click()">${x.reportQRImage?'تغيير صورة QR':'إضافة صورة QR'}</button>${x.reportQRImage?`<button class="danger" onclick="removeReportQR('${p}','${x.id}')">حذف الصورة</button>`:''}<input class="qr-upload-input" id="qrFile_${i}" type="file" accept="image/*" onchange="uploadReportQR(event,'${p}','${x.id}')"></div><div class="qr-upload-note">${x.reportQRImage?'صورة QR مضافة للتقرير':'اضغط لإضافة صورة QR من الصور أو الملفات'}</div></td><td>${x.pdf?`<div class="report-actions"><button class="blue no-print" onclick="openPDF('${p}','${x.id}')">فتح PDF</button><span class="pdf-label hidden">مرفق PDF</span></div>`:'<span class="small">لا يوجد مرفق</span>'}</td>`;body.appendChild(tr);
- if(!x.reportQRImage&&typeof QRCode!=='undefined')new QRCode(tr.querySelector('#'+qrId),{text:makeQR(x,p),width:75,height:75,correctLevel:QRCode.CorrectLevel.M});else if(!x.reportQRImage)tr.querySelector('#'+qrId).textContent='تعذر إنشاء QR';
+
+function updateHome(){
+ document.getElementById('homeIn').textContent=records.in.length;
+ document.getElementById('homeOut').textContent=records.out.length;
+ document.getElementById('homeAll').textContent=records.in.length+records.out.length;
+}
+
+function normalizeText(value){
+ return String(value||'').toLowerCase()
+ .replace(/[ًٌٍَُِّْـ]/g,'')
+ .replace(/[أإآ]/g,'ا')
+ .replace(/ى/g,'ي')
+ .replace(/ة/g,'ه')
+ .replace(/\s+/g,' ').trim();
+}
+
+function searchTable(input,id){
+ const q=normalizeText(input.value);
+ document.querySelectorAll('#'+id+' tbody tr').forEach(r=>{
+  r.style.display=normalizeText(r.textContent).includes(q)?'':'none';
  });
 }
-function uploadReportQR(event,p,id){const file=event.target.files&&event.target.files[0];if(!file)return;if(!file.type.startsWith('image/')){alert('يرجى اختيار صورة QR من الصور أو الملفات.');event.target.value='';return}if(file.size>2*1024*1024){alert('حجم الصورة أكبر من 2 ميجابايت. اختر صورة QR أصغر حتى لا تمتلئ مساحة التخزين.');event.target.value='';return}const reader=new FileReader();reader.onload=()=>{const record=records[p].find(x=>x.id===id);if(!record)return;const oldImage=record.reportQRImage||null;record.reportQRImage=reader.result;if(!persist()){record.reportQRImage=oldImage;return}generateReport()};reader.onerror=()=>alert('تعذرت قراءة الصورة. حاول اختيارها مرة أخرى.');reader.readAsDataURL(file)}
-function removeReportQR(p,id){const record=records[p].find(x=>x.id===id);if(!record||!record.reportQRImage)return;if(!confirm('هل تريد حذف صورة QR المضافة لهذا الخطاب من التقرير؟'))return;const oldImage=record.reportQRImage;record.reportQRImage=null;if(!persist()){record.reportQRImage=oldImage;return}generateReport()}
 
-/* استخراج حقول الترويسة: نعتمد تسمية الحقل وموقعه أعلى الصفحة، لا موضعًا أفقيًا ثابتًا */
-function normalizeDigits(text){return String(text||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d))}
+function globalSearch(){
+ const q=normalizeText(document.getElementById('globalSearchInput').value);
+ const type=document.getElementById('globalSearchType').value;
+ const body=document.querySelector('#globalSearchTable tbody');
+ body.innerHTML='';
+ if(!q){
+  body.innerHTML='<tr><td colspan="8">اكتب كلمة للبحث في جميع بيانات الخطابات</td></tr>';
+  document.getElementById('searchCount').textContent='اكتب كلمة للبحث في جميع بيانات الخطابات.';
+  return;
+ }
+ let results=[];
+ ['in','out'].forEach(p=>{
+  if(type!=='all'&&type!==p)return;
+  records[p].forEach(x=>{
+   const searchable=normalizeText([x.number,x.transactionType,x.subject,x.entity,x.date,p==='in'?'وارد':'صادر'].join(' '));
+   if(searchable.includes(q))results.push({p,x});
+  });
+ });
+ document.getElementById('searchCount').textContent='عدد النتائج: '+results.length;
+ if(!results.length){
+  body.innerHTML='<tr><td colspan="8">لا توجد نتائج مطابقة للبحث</td></tr>';
+  return;
+ }
+ results.forEach(({p,x})=>{
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+  <td>${p==='in'?'وارد':'صادر'}</td>
+  <td>${escapeHTML(x.number||'—')}</td>
+  <td>${escapeHTML(x.transactionType||'—')}</td>
+  <td class="subject">${escapeHTML(x.subject)}</td>
+  <td class="entity-cell">${escapeHTML(x.entity)}</td>
+  <td dir="ltr">${escapeHTML(x.date)}</td>
+  <td>${x.pdf?`<button class="blue" onclick="openPDF('${p}','${x.id}')">فتح PDF</button>`:'لا يوجد مرفق'}</td>
+  <td>
+  <button class="secondary" onclick="showQR('${p}','${x.id}')">QR</button>
+  <button class="secondary" onclick="editRecord('${p}','${x.id}');go('${p==='in'?'incoming':'outgoing'}')">تعديل</button>
+  </td>`;
+  body.appendChild(tr);
+ });
+}
+
+function periodChanged(){
+ const v=document.getElementById('period').value;
+ document.getElementById('singleDate').classList.toggle('hidden',v==='all'||v==='custom');
+ document.getElementById('fromField').classList.toggle('hidden',v!=='custom');
+ document.getElementById('toField').classList.toggle('hidden',v!=='custom');
+}
+
+function generateReport(){
+ const p=document.getElementById('reportType').value;
+ const period=document.getElementById('period').value;
+ let list=[...records[p]],label='';
+
+ if(period==='all')label='كامل السجل';
+
+ if(period==='custom'){
+  const a=document.getElementById('fromDate').value;
+  const b=document.getElementById('toDate').value;
+  if(!validDate(a)||!validDate(b)||a>b)return alert('تحقق من تاريخ البداية والنهاية');
+  list=list.filter(x=>x.date>=a&&x.date<=b);
+  label='من '+a+' إلى '+b;
+ }
+
+ if(['day','week','month','year'].includes(period)){
+  const d=document.getElementById('refDate').value;
+  if(!validDate(d))return alert('أدخل التاريخ الهجري بالصيغة 1448/03/07');
+  if(period==='day'){
+   list=list.filter(x=>x.date===d);
+   label='اليوم '+d;
+  }else if(period==='month'){
+   list=list.filter(x=>x.date.slice(0,7)===d.slice(0,7));
+   label='شهر '+d.slice(0,7);
+  }else if(period==='year'){
+   list=list.filter(x=>x.date.slice(0,4)===d.slice(0,4));
+   label='عام '+d.slice(0,4);
+  }else{
+   alert('لضبط التقرير الأسبوعي بدقة، استخدم خيار «من تاريخ إلى تاريخ» وحدد بداية الأسبوع ونهايته.');
+   return;
+  }
+ }
+
+ list.sort((a,b)=>a.date.localeCompare(b.date));
+ document.getElementById('reportTitle').textContent=p==='in'?'تقرير البريد الوارد':'تقرير البريد الصادر';
+ document.getElementById('reportPeriod').textContent=label;
+ document.getElementById('reportCount').textContent=list.length;
+ document.getElementById('reportFiles').textContent=list.filter(x=>x.pdf).length;
+
+ const body=document.querySelector('#reportTable tbody');
+ body.innerHTML='';
+ if(!list.length){
+  body.innerHTML='<tr><td colspan="6">لا توجد خطابات في الفترة المحددة</td></tr>';
+  return;
+ }
+
+ list.forEach((x,i)=>{
+  const tr=document.createElement('tr');
+  const qrId='reportQR'+i;
+  const qrContent=x.reportQRImage?
+   `<img class="qr-uploaded" src="${x.reportQRImage}" alt="رمز QR المرفق">`:
+   `<div class="qr-mini" id="${qrId}"></div>`;
+
+  tr.innerHTML=`
+  <td>${i+1}</td>
+  <td class="subject">${escapeHTML(x.subject)}</td>
+  <td class="entity-cell">${escapeHTML(x.entity)}</td>
+  <td dir="ltr">${escapeHTML(x.date)}</td>
+  <td>
+  ${qrContent}
+  <div class="report-actions no-print">
+  <button class="secondary" onclick="document.getElementById('qrFile_${i}').click()">${x.reportQRImage?'تغيير صورة QR':'إضافة صورة QR'}</button>
+  ${x.reportQRImage?`<button class="danger" onclick="removeReportQR('${p}','${x.id}')">حذف الصورة</button>`:''}
+  <input class="qr-upload-input" id="qrFile_${i}" type="file" accept="image/*" onchange="uploadReportQR(event,'${p}','${x.id}')">
+  </div>
+  <div class="qr-upload-note">${x.reportQRImage?'صورة QR مضافة للتقرير':'اضغط لإضافة صورة QR من الصور أو الملفات'}</div>
+  </td>
+  <td>${x.pdf?`<div class="report-actions"><button class="blue no-print" onclick="openPDF('${p}','${x.id}')">فتح PDF</button><span class="pdf-label hidden">مرفق PDF</span></div>`:'<span class="small">لا يوجد مرفق</span>'}</td>`;
+  body.appendChild(tr);
+
+  if(!x.reportQRImage&&typeof QRCode!=='undefined'){
+   new QRCode(tr.querySelector('#'+qrId),{text:makeQR(x,p),width:75,height:75,correctLevel:QRCode.CorrectLevel.M});
+  }else if(!x.reportQRImage){
+   tr.querySelector('#'+qrId).textContent='تعذر إنشاء QR';
+  }
+ });
+}
+
+function uploadReportQR(event,p,id){
+ const file=event.target.files&&event.target.files[0];
+ if(!file)return;
+ if(!file.type.startsWith('image/')){
+  alert('يرجى اختيار صورة QR من الصور أو الملفات.');
+  event.target.value='';
+  return;
+ }
+ if(file.size>2*1024*1024){
+  alert('حجم الصورة أكبر من 2 ميجابايت. اختر صورة QR أصغر حتى لا تمتلئ مساحة التخزين.');
+  event.target.value='';
+  return;
+ }
+ const reader=new FileReader();
+ reader.onload=()=>{
+  const record=records[p].find(x=>x.id===id);
+  if(!record)return;
+  const oldImage=record.reportQRImage||null;
+  record.reportQRImage=reader.result;
+  if(!persist()){record.reportQRImage=oldImage;return}
+  generateReport();
+ };
+ reader.onerror=()=>alert('تعذرت قراءة الصورة. حاول اختيارها مرة أخرى.');
+ reader.readAsDataURL(file);
+}
+
+function removeReportQR(p,id){
+ const record=records[p].find(x=>x.id===id);
+ if(!record||!record.reportQRImage)return;
+ if(!confirm('هل تريد حذف صورة QR المضافة لهذا الخطاب من التقرير؟'))return;
+ const oldImage=record.reportQRImage;
+ record.reportQRImage=null;
+ if(!persist()){record.reportQRImage=oldImage;return}
+ generateReport();
+}
+
+/* =====================================================
+   أدوات تنظيف وتحليل النص العربي
+   ===================================================== */
+
+function normalizeDigits(text){
+ return String(text||'')
+ .replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+ .replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+}
+
 function cleanArabicPDF(text){
- let s=normalizeDigits(text).replace(/\r/g,'\n').replace(/[\u064B-\u065F\u0670ـ]/g,'').replace(/[أإآٱ]/g,'ا').replace(/[：]/g,':').replace(/\u00A0/g,' ').replace(/[ \t]+/g,' ');
- const fixes=[[/ا\s+لاختبارات/g,'الاختبارات'],[/االاختبارات/g,'الاختبارات'],[/ل\s*ل\s*عام/g,'للعام'],[/ل\s+لعام/g,'للعام'],[/ال\s+عام/g,'العام'],[/ال\s+معيارية/g,'المعيارية'],[/ال\s+دراسي/g,'الدراسي'],[/ب\s+شأن/g,'بشأن'],[/ب\s+خصوص/g,'بخصوص'],[/ال\s+خطاب/g,'الخطاب'],[/ال\s+جهة/g,'الجهة'],[/ال\s+تاريخ/g,'التاريخ'],[/ر\s+قم/g,'رقم'],[/رقم\s+المعامله/g,'رقم المعاملة'],[/تاريخ\s+المعامله/g,'تاريخ المعاملة'],[/نوع\s+المعامله/g,'نوع المعاملة']];
- fixes.forEach(([a,b])=>s=s.replace(a,b));s=s.replace(/[ \t]+/g,' ').replace(/\s+([،؛:.)])/g,'$1').replace(/([،؛:])(?=\S)/g,'$1 ').replace(/\n{2,}/g,'\n');return s.trim();
+ let s=normalizeDigits(text)
+ .replace(/\r/g,'\n')
+ .replace(/[\u064B-\u065F\u0670ـ]/g,'')
+ .replace(/[أإآٱ]/g,'ا')
+ .replace(/[：]/g,':')
+ .replace(/\u00A0/g,' ')
+ .replace(/[ \t]+/g,' ');
+
+ const fixes=[
+  [/ا\s+لاختبارات/g,'الاختبارات'],
+  [/االاختبارات/g,'الاختبارات'],
+  [/ل\s*ل\s*عام/g,'للعام'],
+  [/ل\s+لعام/g,'للعام'],
+  [/ال\s+عام/g,'العام'],
+  [/ال\s+معيارية/g,'المعيارية'],
+  [/ال\s+دراسي/g,'الدراسي'],
+  [/ب\s+شأن/g,'بشأن'],
+  [/ب\s+خصوص/g,'بخصوص'],
+  [/ال\s+خطاب/g,'الخطاب'],
+  [/ال\s+جهة/g,'الجهة'],
+  [/ال\s+تاريخ/g,'التاريخ'],
+  [/ر\s+قم/g,'رقم'],
+  [/رقم\s+المعامله/g,'رقم المعاملة'],
+  [/تاريخ\s+المعامله/g,'تاريخ المعاملة'],
+  [/نوع\s+المعامله/g,'نوع المعاملة']
+ ];
+ fixes.forEach(([a,b])=>s=s.replace(a,b));
+ s=s.replace(/[ \t]+/g,' ')
+ .replace(/\s+([،؛:.)])/g,'$1')
+ .replace(/([،؛:])(?=\S)/g,'$1 ')
+ .replace(/\n{2,}/g,'\n');
+ return s.trim();
 }
-function normalizeFieldValue(text){return cleanArabicPDF(text).replace(/[|]/g,' ').replace(/\s+/g,' ').trim()}
-function getPDFTextRows(content,pageHeight,pageWidth){
- const items=(content.items||[]).filter(x=>x.str&&x.str.trim()).map(x=>({text:x.str.trim(),x:Number((x.transform||[])[4]||0),y:Number((x.transform||[])[5]||0)})),rows=[];
- items.forEach(item=>{let row=rows.find(r=>Math.abs(r.y-item.y)<3);if(!row){row={y:item.y,items:[]};rows.push(row)}row.items.push(item)});
- rows.sort((a,b)=>b.y-a.y);
- return rows.map(row=>{row.items.sort((a,b)=>b.x-a.x);const minX=Math.min(...row.items.map(i=>i.x)),maxX=Math.max(...row.items.map(i=>i.x)),text=normalizeFieldValue(row.items.map(i=>i.text).join(' ')),leftItems=row.items.filter(i=>i.x<=pageWidth*.48),rightItems=row.items.filter(i=>i.x>=pageWidth*.52);
- return{text,leftText:normalizeFieldValue(leftItems.map(i=>i.text).join(' ')),rightText:normalizeFieldValue(rightItems.map(i=>i.text).join(' ')),y:row.y,topRatio:pageHeight?(pageHeight-row.y)/pageHeight:0,minX,maxX,centerX:(minX+maxX)/2,leftSide:pageWidth?((minX+maxX)/2)<pageWidth*.48:false,rightSide:pageWidth?((minX+maxX)/2)>pageWidth*.52:false}});
+
+function normalizeFieldValue(text){
+ return cleanArabicPDF(text).replace(/[|]/g,' ').replace(/\s+/g,' ').trim();
 }
-function headerRows(rows){return rows.filter(r=>r.topRatio<=0.38)}
-function isHijriDateValid(y,m,d){return y>=1300&&y<=1499&&m>=1&&m<=12&&d>=1&&d<=30}
+
+function normalizeForMatch(text){
+ return normalizeText(normalizeFieldValue(text))
+ .replace(/[ـ:：\-]/g,' ')
+ .replace(/\s+/g,' ')
+ .trim();
+}
+
+function isHijriDateValid(y,m,d){
+ return y>=1300&&y<=1499&&m>=1&&m<=12&&d>=1&&d<=30;
+}
+
 function extractHijriDateFromText(text){
- const s=normalizeDigits(text),matches=[...s.matchAll(/((?:14|13)\d{2})\s*[\/.-]\s*(\d{1,2})\s*[\/.-]\s*(\d{1,2})/g)];
- for(const m of matches){const y=+m[1],mo=+m[2],d=+m[3];if(isHijriDateValid(y,mo,d))return m[1]+'/'+String(mo).padStart(2,'0')+'/'+String(d).padStart(2,'0')}
+ const s=normalizeDigits(text);
+ const matches=[...s.matchAll(/((?:14|13)\d{2})\s*[\/.-]\s*(\d{1,2})\s*[\/.-]\s*(\d{1,2})/g)];
+
+ for(const m of matches){
+  const y=+m[1],mo=+m[2],d=+m[3];
+  if(isHijriDateValid(y,mo,d)){
+   return m[1]+'/'+String(mo).padStart(2,'0')+'/'+String(d).padStart(2,'0');
+  }
+ }
+
  const reverse=[...s.matchAll(/(\d{1,2})\s*[\/.-]\s*(\d{1,2})\s*[\/.-]\s*((?:14|13)\d{2})/g)];
- for(const m of reverse){const d=+m[1],mo=+m[2],y=+m[3];if(isHijriDateValid(y,mo,d))return m[3]+'/'+String(mo).padStart(2,'0')+'/'+String(d).padStart(2,'0')}
- return '';
-}
-function labelValueFromRows(rows,patterns,kind){
- const header=headerRows(rows);
- for(let i=0;i<header.length;i++){
-  const row=header[i],text=row.text;
-  const re=new RegExp('(?:'+patterns+')\\s*[:：\\-]?\\s*(.*)','i'),m=text.match(re);
-  if(!m)continue;
-  let value=(m[1]||'').trim();
-  if(kind==='date'){let d=extractHijriDateFromText(value);if(!d){for(let j=i+1;j<header.length&&j<=i+3;j++){if(Math.abs(header[j].y-row.y)>65)break;d=extractHijriDateFromText(header[j].text);if(d)break}}if(d)return d}
-  else if(kind==='number'){let n=extractNumberValue(value);if(!n){for(let j=i+1;j<header.length&&j<=i+3;j++){if(Math.abs(header[j].y-row.y)>60)break;if(/تاريخ|الموضوع|نوع المعاملة/.test(header[j].text))continue;n=extractNumberValue(header[j].text);if(n)break}}if(n)return n}
-  else if(kind==='type'){value=cleanLabelValue(value);if(!value){for(let j=i+1;j<header.length&&j<=i+2;j++){if(Math.abs(header[j].y-row.y)>45)break;value=cleanLabelValue(header[j].text);if(value)break}}if(value)return value}
-  else if(kind==='subject'){value=cleanSubject(value);if(!value){for(let j=i+1;j<header.length&&j<=i+2;j++){if(Math.abs(header[j].y-row.y)>45)break;value=cleanSubject(header[j].text);if(value)break}}if(value)return value}
+ for(const m of reverse){
+  const d=+m[1],mo=+m[2],y=+m[3];
+  if(isHijriDateValid(y,mo,d)){
+   return m[3]+'/'+String(mo).padStart(2,'0')+'/'+String(d).padStart(2,'0');
+  }
  }
  return '';
 }
-function extractNumberValue(text){const cleaned=normalizeDigits(text).replace(/[^\d]/g,'');return cleaned.length>=3&&cleaned.length<=25?cleaned:''}
-function extractNumberFromHeader(rows){return labelValueFromRows(rows,'رقم\\s*المعاملة|رقم\\s*المعامله|رقم\\s*الخطاب|الرقم','number')}
-function extractDateFromHeader(rows){return labelValueFromRows(rows,'تاريخ\\s*المعاملة|تاريخ\\s*المعامله|التاريخ','date')}
-function cleanLabelValue(text){let s=normalizeFieldValue(text);s=s.replace(/^(?:نوع\s*المعاملة|نوع\s*المعامله)\s*[:：\-]?\s*/,'');s=s.split(/رقم المعاملة|تاريخ المعاملة|الموضوع|الجهة|السلام عليكم/)[0].trim();return s.length>=2&&s.length<=100?s:''}
-function extractTypeFromHeader(rows){return labelValueFromRows(rows,'نوع\\s*المعاملة|نوع\\s*المعامله','type')}
+
+/* =====================================================
+   قراءة أسطر PDF مع الاحتفاظ بالموقع الأفقي والرأسي
+   ===================================================== */
+
+function getPDFTextRows(content,pageHeight,pageWidth){
+ const items=(content.items||[])
+ .filter(x=>x.str&&x.str.trim())
+ .map(x=>{
+  const transform=x.transform||[];
+  const xPos=Number(transform[4]||0);
+  const yPos=Number(transform[5]||0);
+  const width=Number(x.width||0);
+  return{
+   text:x.str.trim(),
+   x:xPos,
+   y:yPos,
+   width,
+   centerX:xPos+width/2
+  };
+ });
+
+ const rows=[];
+
+ items.forEach(item=>{
+  let row=rows.find(r=>Math.abs(r.y-item.y)<3.5);
+  if(!row){
+   row={y:item.y,items:[]};
+   rows.push(row);
+  }
+  row.items.push(item);
+ });
+
+ rows.sort((a,b)=>b.y-a.y);
+
+ return rows.map(row=>{
+  row.items.sort((a,b)=>b.x-a.x);
+
+  const allText=normalizeFieldValue(row.items.map(i=>i.text).join(' '));
+  const rightItems=row.items.filter(i=>i.centerX>=pageWidth*.52);
+  const leftItems=row.items.filter(i=>i.centerX<=pageWidth*.48);
+
+  return{
+   text:allText,
+   leftText:normalizeFieldValue(leftItems.map(i=>i.text).join(' ')),
+   rightText:normalizeFieldValue(rightItems.map(i=>i.text).join(' ')),
+   y:row.y,
+   topRatio:pageHeight?(pageHeight-row.y)/pageHeight:0,
+   minX:Math.min(...row.items.map(i=>i.x)),
+   maxX:Math.max(...row.items.map(i=>i.x+i.width)),
+   centerX:row.items.reduce((a,i)=>a+i.centerX,0)/row.items.length,
+   pageWidth
+  };
+ });
+}
+
+/* =====================================================
+   OCR: تحويل كلمات OCR إلى أسطر ذات مواقع فعلية
+   ===================================================== */
+
+function getOCRTextRows(ocrData){
+ const words=(ocrData.words||[])
+ .filter(w=>w.text&&w.text.trim()&&w.bbox)
+ .map(w=>({
+  text:w.text.trim(),
+  x:Number(w.bbox.x0||0),
+  y:Number(w.bbox.y0||0),
+  x1:Number(w.bbox.x1||0),
+  y1:Number(w.bbox.y1||0),
+  centerY:(Number(w.bbox.y0||0)+Number(w.bbox.y1||0))/2,
+  centerX:(Number(w.bbox.x0||0)+Number(w.bbox.x1||0))/2
+ }));
+
+ const rows=[];
+
+ words.forEach(word=>{
+  let row=rows.find(r=>Math.abs(r.centerY-word.centerY)<Math.max(9,(word.y1-word.y)/2));
+  if(!row){
+   row={centerY:word.centerY,items:[]};
+   rows.push(row);
+  }
+  row.items.push(word);
+ });
+
+ rows.sort((a,b)=>a.centerY-b.centerY);
+
+ const imageHeight=Number(ocrData.imageHeight||ocrData.height||1);
+ const imageWidth=Number(ocrData.imageWidth||ocrData.width||1);
+
+ return rows.map(row=>{
+  row.items.sort((a,b)=>b.x-a.x);
+  const allText=normalizeFieldValue(row.items.map(w=>w.text).join(' '));
+  const rightItems=row.items.filter(w=>w.centerX>=imageWidth*.52);
+  const leftItems=row.items.filter(w=>w.centerX<=imageWidth*.48);
+
+  return{
+   text:allText,
+   rightText:normalizeFieldValue(rightItems.map(w=>w.text).join(' ')),
+   leftText:normalizeFieldValue(leftItems.map(w=>w.text).join(' ')),
+   y:row.centerY,
+   topRatio:row.centerY/imageHeight,
+   centerX:row.items.reduce((a,w)=>a+w.centerX,0)/row.items.length,
+   pageWidth:imageWidth
+  };
+ });
+}
+
+/* =====================================================
+   تحديد منطقة الترويسة فقط
+   ===================================================== */
+
+function headerRows(rows){
+ return rows.filter(r=>Number.isFinite(r.topRatio)&&r.topRatio>=0&&r.topRatio<=0.40);
+}
+
+function isMetadataLabel(text){
+ const s=normalizeForMatch(text);
+ return /رقم المعامله|رقم الخطاب|تاريخ المعامله|نوع المعامله|الموضوع|موضوع الخطاب/.test(s);
+}
+
+function labelMatches(text,kind){
+ const s=normalizeForMatch(text);
+
+ if(kind==='number')return /رقم المعامله|رقم الخطاب/.test(s);
+ if(kind==='date')return /تاريخ المعامله/.test(s);
+ if(kind==='type')return /نوع المعامله/.test(s);
+ if(kind==='subject')return /الموضوع|موضوع الخطاب/.test(s);
+
+ return false;
+}
+
+function getLabelPattern(kind){
+ if(kind==='number')return /رقم\s*(?:المعاملة|المعامله|الخطاب)/i;
+ if(kind==='date')return /تاريخ\s*(?:المعاملة|المعامله)/i;
+ if(kind==='type')return /نوع\s*(?:المعاملة|المعامله)/i;
+ if(kind==='subject')return /(?:موضوع\s*الخطاب|الموضوع)/i;
+ return null;
+}
+
+function cleanLabelValue(text,kind){
+ let s=normalizeFieldValue(text);
+ const labelPattern=getLabelPattern(kind);
+ if(labelPattern)s=s.replace(labelPattern,'');
+ s=s.replace(/^[\s:：\-–—]+/,'');
+ s=s.split(/رقم المعاملة|رقم المعامله|رقم الخطاب|تاريخ المعاملة|تاريخ المعامله|نوع المعاملة|نوع المعامله|الموضوع|موضوع الخطاب|السلام عليكم/i)[0].trim();
+ return s;
+}
+
+function extractNumberValue(text){
+ const s=normalizeDigits(text);
+ if(extractHijriDateFromText(s))return '';
+ const cleaned=s.replace(/[^\d]/g,'');
+ return cleaned.length>=3&&cleaned.length<=25?cleaned:'';
+}
+
+/*
+  البحث عن قيمة الحقل:
+  1- داخل السطر الذي يحتوي على التسمية.
+  2- في السطر التالي القريب فقط.
+  3- التوقف عند ظهور تسمية حقل أخرى.
+  لا يجري البحث في متن الخطاب.
+*/
+function extractLabeledValue(rows,kind){
+ const header=headerRows(rows);
+ const pattern=getLabelPattern(kind);
+ if(!pattern)return '';
+
+ for(let i=0;i<header.length;i++){
+  const row=header[i];
+  const source=row.text||'';
+
+  if(!labelMatches(source,kind))continue;
+
+  const match=source.match(pattern);
+  let sameLine='';
+
+  if(match){
+   sameLine=source.slice(match.index+match[0].length);
+   sameLine=cleanLabelValue(sameLine,kind);
+  }
+
+  let value='';
+
+  if(kind==='date'){
+   value=extractHijriDateFromText(sameLine);
+  }else if(kind==='number'){
+   value=extractNumberValue(sameLine);
+  }else if(kind==='type'){
+   value=cleanLabelValue(sameLine,'type');
+   if(value.length>80)value='';
+  }else if(kind==='subject'){
+   value=cleanSubject(sameLine);
+  }
+
+  if(value)return value;
+
+  for(let j=i+1;j<header.length&&j<=i+2;j++){
+   const next=header[j];
+
+   if(Math.abs(next.y-row.y)>65)break;
+   if(isMetadataLabel(next.text))break;
+
+   const candidate=next.text||'';
+
+   if(kind==='date'){
+    value=extractHijriDateFromText(candidate);
+   }else if(kind==='number'){
+    value=extractNumberValue(candidate);
+   }else if(kind==='type'){
+    value=cleanLabelValue(candidate,'type');
+    if(value.length>80)value='';
+   }else if(kind==='subject'){
+    value=cleanSubject(candidate);
+   }
+
+   if(value)return value;
+  }
+ }
+
+ return '';
+}
+
+function extractNumberFromHeader(rows){
+ return extractLabeledValue(rows,'number');
+}
+
+function extractDateFromHeader(rows){
+ return extractLabeledValue(rows,'date');
+}
+
+function extractTypeFromHeader(rows){
+ return extractLabeledValue(rows,'type');
+}
+
+function cleanSubject(subject){
+ let s=normalizeFieldValue(subject);
+ s=s.replace(/^(?:الموضوع|موضوع الخطاب)\s*[:：\-]?\s*/i,'');
+ s=s.replace(/\s+(?:السلام عليكم|سعادة|مدير\/|مدير عام|المرفقات|رقم المعاملة|تاريخ المعاملة|نوع المعاملة).*$/i,'');
+ s=s.replace(/[.،؛]+$/,'').trim();
+ s=s.split(/السلام عليكم|سعادة|حرصا من|عليه نأمل|وتقبلوا|والسلام عليكم/i)[0].trim();
+
+ if(s.length<4||s.length>220)return '';
+ return s;
+}
+
+function extractSubjectFromHeader(rows){
+ return extractLabeledValue(rows,'subject');
+}
+
+/* =====================================================
+   استخراج الجهة من السطور الإدارية أعلى الترويسة
+   ===================================================== */
+
 function isAdministrativeLine(text){
- const s=normalizeText(text);if(!s||s.length<4||s.length>130)return false;
+ const s=normalizeText(text);
+
+ if(!s||s.length<3||s.length>130)return false;
+
  if(/وزاره التعليم|الاداره العامه للتعليم بمنطقه الجوف|المملكه العربيه السعوديه|مدرسه عبدالله بن مسعود/.test(s))return false;
- if(/الموضوع|رقم المعامله|رقم الخطاب|التاريخ|المرفقات|السلام عليكم|سعاده|بالتعميم|نوع المعامله/.test(s)||/^\d/.test(s))return false;
+
+ if(/الموضوع|رقم المعامله|رقم الخطاب|تاريخ المعامله|المرفقات|السلام عليكم|سعاده|بالتعميم|نوع المعامله/.test(s))return false;
+
+ if(/^\d/.test(s))return false;
+
  return /(الشؤون|شؤون|قسم|اداره|اداء التعليم|وكاله|وحده|مكتب|النشاط|نشاط|الاشراف|التوجيه|المسؤوليه|المجتمعيه|العمل التطوعي)/.test(s);
 }
+
 function extractEntityFromHeader(rows){
- const header=headerRows(rows),selected=[];
- header.forEach(r=>{const line=r.rightText||r.text;if(isAdministrativeLine(line))selected.push(line)});
- const unique=[];selected.forEach(line=>{if(!unique.some(x=>normalizeText(x)===normalizeText(line)))unique.push(line)});
+ const header=headerRows(rows);
+ const selected=[];
+
+ header.forEach(r=>{
+  const line=r.rightText||r.text;
+  if(!isAdministrativeLine(line))return;
+
+  /* استبعاد السطور التي تقع أسفل بداية بيانات الموضوع */
+  if(isMetadataLabel(r.text))return;
+
+  selected.push(line);
+ });
+
+ const unique=[];
+ selected.forEach(line=>{
+  if(!unique.some(x=>normalizeText(x)===normalizeText(line))){
+   unique.push(line);
+  }
+ });
+
  return unique.slice(0,4).join(' – ').trim();
 }
-function cleanSubject(subject){
- let s=normalizeFieldValue(subject).replace(/^(?:الموضوع|موضوع الخطاب)\s*[:：\-]?\s*/i,'');
- s=s.replace(/\s+(?:السلام عليكم|سعادة|مدير\/|مدير عام|المرفقات|رقم المعاملة|تاريخ المعاملة|نوع المعاملة).*$/i,'').replace(/[.،؛]+$/,'').trim();
- s=s.split(/السلام عليكم|سعادة|حرصا من|عليه نأمل|وتقبلوا|والسلام عليكم/i)[0].trim();return s.length>=4?s.slice(0,220):'';
-}
-function extractSubjectFromHeader(rows){return labelValueFromRows(rows,'الموضوع|موضوع\\s*الخطاب','subject')}
-function analyzeHeader(rows){return{number:extractNumberFromHeader(rows),transactionType:extractTypeFromHeader(rows),date:extractDateFromHeader(rows),entity:extractEntityFromHeader(rows),subject:extractSubjectFromHeader(rows)}}
 
-/* OCR احتياطي للصفحة الأولى فقط، بعد موافقة المستخدم */
+function analyzeHeader(rows){
+ return{
+  number:extractNumberFromHeader(rows),
+  transactionType:extractTypeFromHeader(rows),
+  date:extractDateFromHeader(rows),
+  entity:extractEntityFromHeader(rows),
+  subject:extractSubjectFromHeader(rows)
+ };
+}
+
+/* =====================================================
+   تشغيل OCR على الصفحة الأولى فقط
+   ===================================================== */
+
 async function runOCRPageOne(pdf,status){
- if(typeof Tesseract==='undefined')throw new Error('مكتبة التعرف الضوئي OCR غير متاحة.');
- const page=await pdf.getPage(1),viewport=page.getViewport({scale:2}),canvas=document.createElement('canvas');canvas.width=viewport.width;canvas.height=viewport.height;
- await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
- const worker=await Tesseract.createWorker('ara+eng',1,{logger:m=>{if(m.status==='recognizing text')status.textContent='التعرف الضوئي على الصفحة الأولى... '+Math.round((m.progress||0)*100)+'%'}});
- try{const result=await worker.recognize(canvas);return cleanArabicPDF(result.data.text||'')}finally{await worker.terminate()}
-}
-function analyzeOCRText(text){
- const lines=cleanArabicPDF(text).split(/\n+/).map(x=>x.trim()).filter(Boolean),headerLines=lines.slice(0,30);
- let number='',date='',transactionType='',entity='',subject='';
- for(let i=0;i<headerLines.length;i++){
-  const line=headerLines[i],next=headerLines[i+1]||'';
-  if(/رقم\s*المعاملة|رقم\s*المعامله|رقم\s*الخطاب|الرقم/.test(line)){
-   const m=line.match(/(?:رقم\s*المعاملة|رقم\s*المعامله|رقم\s*الخطاب|الرقم)\s*[:：\-]?\s*([0-9٠-٩۰-۹][0-9٠-٩۰-۹\s\/-]{2,35})/);if(m)number=extractNumberValue(m[1]);if(!number&&!/تاريخ|الموضوع|نوع المعاملة/.test(next))number=extractNumberValue(next);
-  }
-  if(/تاريخ\s*المعاملة|تاريخ\s*المعامله|التاريخ/.test(line)){date=extractHijriDateFromText(line)||extractHijriDateFromText(next)||extractHijriDateFromText(headerLines[i+2]||'')}
-  if(/نوع\s*المعاملة|نوع\s*المعامله/.test(line)){const m=line.match(/نوع\s*المعاملة\s*[:：\-]?\s*(.*)/);transactionType=cleanLabelValue(m&&m[1]?m[1]:next)}
-  if(/الموضوع|موضوع\s*الخطاب/.test(line)){const m=line.match(/(?:الموضوع|موضوع\s*الخطاب)\s*[:：\-]?\s*(.*)/);subject=cleanSubject(m&&m[1]?m[1]:next)}
+ if(typeof Tesseract==='undefined'){
+  throw new Error('مكتبة التعرف الضوئي OCR غير متاحة.');
  }
- const entityLines=headerLines.filter(isAdministrativeLine);if(entityLines.length)entity=entityLines.slice(0,4).join(' – ');
- return{number,transactionType,date,entity,subject};
-}
-function fillExtractedFields(p,data){
- const fields={number:data.number||'',transactionType:data.transactionType||'',subject:data.subject||'',entity:data.entity||'',date:data.date||''};
- const ids={number:p+'Number',transactionType:p+'TransactionType',subject:p+'Subject',entity:p+'Entity',date:p+'Date'};
- const names={number:'رقم المعاملة',transactionType:'نوع المعاملة',subject:'الموضوع',entity:'الجهة',date:'التاريخ الهجري'};
- const found=[],missing=[],notOverwritten=[];
- Object.keys(fields).forEach(key=>{const input=document.getElementById(ids[key]);if(fields[key]&&input){if(input.value.trim())notOverwritten.push(names[key]);else{input.value=fields[key];found.push(names[key])}}else missing.push(names[key])});
- const status=document.getElementById(p+'ExtractStatus');status.className='extract-status';
- status.innerHTML='<b>نتيجة محاولة الاستخراج:</b><br>تم العثور على: '+escapeHTML(found.join('، ')||'لم يتم العثور على حقول جديدة مؤكدة')+(notOverwritten.length?'<br>لم تُستبدل الحقول التي تحتوي بيانات مسبقة: '+escapeHTML(notOverwritten.join('، ')):'')+'<br>لم يتم العثور على: '+escapeHTML(missing.join('، ')||'لا توجد حقول مفقودة')+'<br><b>تنبيه مهم:</b> راجع رقم المعاملة والتاريخ ونوع المعاملة والجهة والموضوع مقابل الخطاب الأصلي قبل الحفظ. لم يتم حفظ أي بيانات تلقائيًا.';
-}
-async function extractPdf(p){
- const input=document.getElementById(p+'Pdf'),file=input.files&&input.files[0],status=document.getElementById(p+'ExtractStatus');
- if(!file){alert('اختر ملف PDF أولاً.');return}if(file.type!=='application/pdf'&&!file.name.toLowerCase().endsWith('.pdf')){alert('يرجى اختيار ملف PDF فقط.');return}
- status.className='extract-status';status.textContent='جارٍ قراءة الصفحة الأولى وتحليل الترويسة فقط...';
- try{
-  if(typeof pdfjsLib==='undefined')throw new Error('مكتبة قراءة PDF غير متاحة.');
-  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  const buffer=await file.arrayBuffer(),pdf=await pdfjsLib.getDocument({data:new Uint8Array(buffer)}).promise,page=await pdf.getPage(1),viewport=page.getViewport({scale:1}),content=await page.getTextContent();
-  let data=analyzeHeader(getPDFTextRows(content,viewport.height,viewport.width));
-  const missing=[];if(!data.number)missing.push('رقم المعاملة');if(!data.date)missing.push('التاريخ الهجري');if(!data.transactionType)missing.push('نوع المعاملة');if(!data.entity)missing.push('الجهة');if(!data.subject)missing.push('الموضوع');
-  if(missing.length&&confirm('لم يتم العثور على جميع بيانات الترويسة بصورة مؤكدة.\n\nالحقول التي لم يتم العثور عليها:\n'+missing.join('، ')+'\n\nهل تريد تشغيل التعرف الضوئي OCR على الصفحة الأولى؟\n\nتنبيه: قد تستغرق العملية وقتًا أطول، وتتطلب اتصالًا بالإنترنت، وقد تتأثر دقتها بوضوح المستند.')){
-   status.textContent='جارٍ تشغيل OCR على الصفحة الأولى...';const ocrData=analyzeOCRText(await runOCRPageOne(pdf,status));
-   Object.keys(data).forEach(k=>{if(!data[k])data[k]=ocrData[k]||''});
+
+ const page=await pdf.getPage(1);
+ const viewport=page.getViewport({scale:2});
+ const canvas=document.createElement('canvas');
+ canvas.width=viewport.width;
+ canvas.height=viewport.height;
+
+ await page.render({
+  canvasContext:canvas.getContext('2d'),
+  viewport
+ }).promise;
+
+ const worker=await Tesseract.createWorker('ara+eng',1,{
+  logger:m=>{
+   if(m.status==='recognizing text'){
+    status.textContent='التعرف الضوئي على الصفحة الأولى... '+Math.round((m.progress||0)*100)+'%';
+   }
   }
-  fillExtractedFields(p,data);status.scrollIntoView({behavior:'smooth',block:'nearest'});
- }catch(e){console.error(e);status.className='extract-status';status.textContent='تعذر استخراج البيانات من الملف. يمكنك إدخالها يدويًا.';alert('تعذر قراءة ملف PDF أو تشغيل OCR.\n\nتحقق من اتصال الإنترنت، وتأكد من أن الملف غير محمي أو تالف، ثم حاول مرة أخرى.')}
+ });
+
+ try{
+  const result=await worker.recognize(canvas);
+  return result.data||{};
+ }finally{
+  await worker.terminate();
+ }
 }
 
-/* النسخ الاحتياطي والاستعادة */
-function exportBackup(){try{const blob=new Blob([JSON.stringify(records)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='نسخة-سجل-البريد.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}catch(e){alert('تعذر إنشاء النسخة الاحتياطية.')}}
+function analyzeOCRText(ocrData){
+ const rows=getOCRTextRows(ocrData);
+ if(rows.length){
+  return analyzeHeader(rows);
+ }
+
+ /* احتياط محدود عند عدم توفر بيانات مواقع كلمات OCR */
+ const raw=cleanArabicPDF(ocrData.text||'');
+ const lines=raw.split(/\n+/).map(x=>x.trim()).filter(Boolean).slice(0,15);
+ const limitedRows=lines.map((text,i)=>({
+  text,
+  rightText:text,
+  leftText:'',
+  y:i*20,
+  topRatio:i/Math.max(lines.length,1),
+  centerX:100,
+  pageWidth:200
+ }));
+
+ return analyzeHeader(limitedRows);
+}
+
+/* =====================================================
+   تعبئة الحقول دون استبدال بيانات المستخدم
+   ===================================================== */
+
+function fillExtractedFields(p,data){
+ const fields={
+  number:data.number||'',
+  transactionType:data.transactionType||'',
+  subject:data.subject||'',
+  entity:data.entity||'',
+  date:data.date||''
+ };
+
+ const ids={
+  number:p+'Number',
+  transactionType:p+'TransactionType',
+  subject:p+'Subject',
+  entity:p+'Entity',
+  date:p+'Date'
+ };
+
+ const names={
+  number:'رقم المعاملة',
+  transactionType:'نوع المعاملة',
+  subject:'الموضوع',
+  entity:'الجهة',
+  date:'التاريخ الهجري'
+ };
+
+ const found=[],missing=[],notOverwritten=[];
+
+ Object.keys(fields).forEach(key=>{
+  const input=document.getElementById(ids[key]);
+
+  if(fields[key]&&input){
+   if(input.value.trim()){
+    notOverwritten.push(names[key]);
+   }else{
+    input.value=fields[key];
+    found.push(names[key]);
+   }
+  }else{
+   missing.push(names[key]);
+  }
+ });
+
+ const status=document.getElementById(p+'ExtractStatus');
+ status.className='extract-status';
+
+ status.innerHTML=
+ '<b>نتيجة محاولة الاستخراج:</b><br>'+
+ 'تم العثور على: '+escapeHTML(found.join('، ')||'لم يتم العثور على حقول جديدة مؤكدة')+
+ (notOverwritten.length?'<br>لم تُستبدل الحقول التي تحتوي بيانات مسبقة: '+escapeHTML(notOverwritten.join('، ')):'')+
+ '<br>لم يتم العثور على: '+escapeHTML(missing.join('، ')||'لا توجد حقول مفقودة')+
+ '<br><b>تنبيه مهم:</b> راجع رقم المعاملة والتاريخ ونوع المعاملة والجهة والموضوع مقابل الخطاب الأصلي قبل الحفظ. لم يتم حفظ أي بيانات تلقائيًا.';
+}
+
+/* =====================================================
+   قراءة ملف PDF وتحليل الترويسة فقط
+   ===================================================== */
+
+async function extractPdf(p){
+ const input=document.getElementById(p+'Pdf');
+ const file=input.files&&input.files[0];
+ const status=document.getElementById(p+'ExtractStatus');
+
+ if(!file){
+  alert('اختر ملف PDF أولاً.');
+  return;
+ }
+
+ if(file.type!=='application/pdf'&&!file.name.toLowerCase().endsWith('.pdf')){
+  alert('يرجى اختيار ملف PDF فقط.');
+  return;
+ }
+
+ status.className='extract-status';
+ status.textContent='جارٍ قراءة الصفحة الأولى وتحليل الترويسة فقط...';
+
+ try{
+  if(typeof pdfjsLib==='undefined'){
+   throw new Error('مكتبة قراءة PDF غير متاحة.');
+  }
+
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  const buffer=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:new Uint8Array(buffer)}).promise;
+
+  if(!pdf.numPages)throw new Error('ملف PDF لا يحتوي على صفحات.');
+
+  const page=await pdf.getPage(1);
+  const viewport=page.getViewport({scale:1});
+  const content=await page.getTextContent();
+
+  let rows=getPDFTextRows(content,viewport.height,viewport.width);
+  let data=analyzeHeader(rows);
+
+  const missing=[];
+  if(!data.number)missing.push('رقم المعاملة');
+  if(!data.date)missing.push('التاريخ الهجري');
+  if(!data.transactionType)missing.push('نوع المعاملة');
+  if(!data.entity)missing.push('الجهة');
+  if(!data.subject)missing.push('الموضوع');
+
+  if(missing.length&&confirm(
+   'لم يتم العثور على جميع بيانات الترويسة بصورة مؤكدة.\n\n'+
+   'الحقول التي لم يتم العثور عليها:\n'+missing.join('، ')+
+   '\n\nهل تريد تشغيل التعرف الضوئي OCR على الصفحة الأولى؟\n\n'+
+   'تنبيه: قد تستغرق العملية وقتًا أطول، وتتطلب اتصالًا بالإنترنت، وقد تتأثر دقتها بوضوح المستند.'
+  )){
+   status.textContent='جارٍ تشغيل OCR على الصفحة الأولى...';
+
+   const ocrData=analyzeOCRText(await runOCRPageOne(pdf,status));
+
+   Object.keys(data).forEach(k=>{
+    if(!data[k]&&ocrData[k])data[k]=ocrData[k];
+   });
+  }
+
+  fillExtractedFields(p,data);
+  status.scrollIntoView({behavior:'smooth',block:'nearest'});
+
+ }catch(e){
+  console.error(e);
+  status.className='extract-status';
+  status.textContent='تعذر استخراج البيانات من الملف. يمكنك إدخالها يدويًا.';
+  alert('تعذر قراءة ملف PDF أو تشغيل OCR.\n\nتحقق من اتصال الإنترنت، وتأكد من أن الملف غير محمي أو تالف، ثم حاول مرة أخرى.');
+ }
+}
+
+/* =====================================================
+   النسخ الاحتياطي والاستعادة
+   ===================================================== */
+
+function exportBackup(){
+ try{
+  const blob=new Blob([JSON.stringify(records)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='نسخة-سجل-البريد.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+ }catch(e){
+  alert('تعذر إنشاء النسخة الاحتياطية.');
+ }
+}
+
 function importBackup(e){
- const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!Array.isArray(x.in)||!Array.isArray(x.out))throw Error();if(!confirm('سيتم استبدال السجلات الحالية. هل تريد المتابعة؟'))return;const previous=records;records=x;records.in.forEach(migrateRecord);records.out.forEach(migrateRecord);if(!persist()){records=previous;return}renderAll();alert('تمت استعادة النسخة بنجاح')}catch(err){alert('ملف النسخة الاحتياطية غير صالح')}};r.readAsText(file)
+ const file=e.target.files[0];
+ if(!file)return;
+
+ const r=new FileReader();
+
+ r.onload=()=>{
+  try{
+   const x=JSON.parse(r.result);
+
+   if(!x||!Array.isArray(x.in)||!Array.isArray(x.out))throw Error();
+
+   if(!confirm('سيتم استبدال السجلات الحالية. هل تريد المتابعة؟'))return;
+
+   const previous=records;
+   records=x;
+
+   records.in.forEach(migrateRecord);
+   records.out.forEach(migrateRecord);
+
+   if(!persist()){
+    records=previous;
+    return;
+   }
+
+   renderAll();
+   alert('تمت استعادة النسخة بنجاح');
+
+  }catch(err){
+   alert('ملف النسخة الاحتياطية غير صالح');
+  }finally{
+   e.target.value='';
+  }
+ };
+
+ r.readAsText(file);
 }
+
+/* =====================================================
+   قراءة بيانات QR
+   ===================================================== */
+
 function readQR(){
- const match=location.hash.match(/#record=(.+)$/);if(!match)return;
- try{const encoded=decodeURIComponent(match[1]),data=JSON.parse(decodeURIComponent(escape(atob(encoded))));
- document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));document.getElementById('recordView').classList.remove('hidden');
- document.getElementById('recordDetails').innerHTML=`<p><b>نوع السجل:</b> ${escapeHTML(data.type)}</p><p><b>رقم المعاملة:</b> ${escapeHTML(data.number||'غير مسجل')}</p><p><b>نوع المعاملة:</b> ${escapeHTML(data.transactionType||'غير مسجل')}</p><p><b>موضوع الخطاب:</b> ${escapeHTML(data.subject)}</p><p><b>الجهة:</b> ${escapeHTML(data.entity)}</p><p><b>التاريخ:</b> ${escapeHTML(data.date)}</p><div class="notice">هذه بيانات الخطاب المشفرة داخل رمز QR.</div>`;
- }catch(e){alert('تعذر قراءة بيانات رمز QR.')}
+ const match=location.hash.match(/#record=(.+)$/);
+ if(!match)return;
+
+ try{
+  const encoded=decodeURIComponent(match[1]);
+  const data=JSON.parse(decodeURIComponent(escape(atob(encoded))));
+
+  document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));
+  document.getElementById('recordView').classList.remove('hidden');
+
+  document.getElementById('recordDetails').innerHTML=`
+  <p><b>نوع السجل:</b> ${escapeHTML(data.type)}</p>
+  <p><b>رقم المعاملة:</b> ${escapeHTML(data.number||'غير مسجل')}</p>
+  <p><b>نوع المعاملة:</b> ${escapeHTML(data.transactionType||'غير مسجل')}</p>
+  <p><b>موضوع الخطاب:</b> ${escapeHTML(data.subject)}</p>
+  <p><b>الجهة:</b> ${escapeHTML(data.entity)}</p>
+  <p><b>التاريخ:</b> ${escapeHTML(data.date)}</p>
+  <div class="notice">هذه بيانات الخطاب المشفرة داخل رمز QR.</div>`;
+
+ }catch(e){
+  alert('تعذر قراءة بيانات رمز QR.');
+ }
 }
-document.getElementById('inPdf').addEventListener('change',function(){document.getElementById('inPdfStatus').textContent=this.files[0]?'الملف المختار: '+this.files[0].name:'';document.getElementById('inExtractStatus').textContent=''});
-document.getElementById('outPdf').addEventListener('change',function(){document.getElementById('outPdfStatus').textContent=this.files[0]?'الملف المختار: '+this.files[0].name:'';document.getElementById('outExtractStatus').textContent=''});
-load();periodChanged();readQR();
+
+/* =====================================================
+   أحداث اختيار المرفقات وتشغيل المنصة
+   ===================================================== */
+
+document.getElementById('inPdf').addEventListener('change',function(){
+ document.getElementById('inPdfStatus').textContent=this.files[0]?'الملف المختار: '+this.files[0].name:'';
+ document.getElementById('inExtractStatus').textContent='';
+});
+
+document.getElementById('outPdf').addEventListener('change',function(){
+ document.getElementById('outPdfStatus').textContent=this.files[0]?'الملف المختار: '+this.files[0].name:'';
+ document.getElementById('outExtractStatus').textContent='';
+});
+
+load();
+periodChanged();
+readQR();
 </script>
 </body>
 </html>
