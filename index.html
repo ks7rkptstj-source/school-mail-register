@@ -260,9 +260,6 @@ th,td{font-size:10px;padding:5px 4px}
 <script>
 'use strict';
 
-/* =========================================================
-   إعدادات التخزين والبيانات
-========================================================= */
 const KEY='school_mail_register_v1';
 let records={in:[],out:[]};
 let currentPdfURL=null;
@@ -412,9 +409,6 @@ function escapeHTML(s){
  return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-/* =========================================================
-   رموز QR وملفات PDF
-========================================================= */
 function makeQR(x,p){
  const data={type:p==='in'?'وارد':'صادر',number:x.number||'',transactionType:x.transactionType||'',subject:x.subject,entity:x.entity,date:x.date};
  const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
@@ -472,9 +466,6 @@ function closePDF(){
  if(currentPdfURL){URL.revokeObjectURL(currentPdfURL);currentPdfURL=null;}
 }
 
-/* =========================================================
-   عرض السجلات والبحث
-========================================================= */
 function renderTable(p){
  const id=p==='in'?'inTable':'outTable';
  const body=document.querySelector('#'+id+' tbody');
@@ -557,9 +548,6 @@ function globalSearch(){
  });
 }
 
-/* =========================================================
-   التقارير والفترات
-========================================================= */
 function periodChanged(){
  const v=document.getElementById('period').value;
  document.getElementById('singleDate').classList.toggle('hidden',v==='all'||v==='custom');
@@ -687,9 +675,6 @@ function removeReportQR(p,id){
  generateReport();
 }
 
-/* =========================================================
-   OCR: تنظيف النص العربي وتوحيد الكلمات
-========================================================= */
 function sanitizeArabicOCRText(text){
  return String(text??'')
   .replace(/\b[a-zA-Z]{2,}\b/g,' ')
@@ -757,9 +742,6 @@ function validBox(b){
  return b&&Number.isFinite(+b.x0)&&Number.isFinite(+b.y0)&&Number.isFinite(+b.x1)&&Number.isFinite(+b.y1)&&b.x1>b.x0&&b.y1>b.y0;
 }
 
-/* =========================================================
-   OCR: تجميع الكلمات في أسطر بحسب إحداثياتها
-========================================================= */
 function getOCRTextRows(ocrData,imageWidth,imageHeight){
  const words=(ocrData.words||[])
  .filter(w=>w.text&&w.text.trim()&&validBox(w.bbox))
@@ -825,51 +807,42 @@ function headerRows(rows){
  return rows.filter(r=>r.topRatio>=0&&r.topRatio<=0.48);
 }
 
-/* =========================================================
-   OCR: استخراج رقم المعاملة بدقة عالية
-========================================================= */
 function extractTransactionNumber(allText,rows){
  const rawTop=normalizeDigits([
   String(allText||''),
   ...headerRows(rows).map(r=>r.text)
  ].join('\n'));
 
- const nearLabel=rawTop.match(/رقم\s*(?:المعاملة|المعامله|الخطاب)?\s*[:：\-]?\s*\n?\s*([0-9٠-٩۰-۹\/\\\-|lI\s]{6,20})/);
+ const nearLabel=rawTop.match(/رقم\s*(?:المعاملة|المعامله|الخطاب)?\s*[:：\-]?\s*\n?\s*([0-9٠-٩۰-۹\/\\\-|lI\s]{6,22})/);
  if(nearLabel&&nearLabel[1]){
   let cand=normalizeDigits(nearLabel[1])
    .replace(/[|lI]/g,'/')
    .replace(/\s+/g,'')
    .replace(/-+/g,'/')
    .trim();
-
   if(!cand.includes('/')&&/^4\d{9}[1-9]$/.test(cand)){
    cand=cand.slice(0,10)+'/'+cand.slice(10);
   }
-
   if(cand.length>=6&&!/^05\d{8}$/.test(cand)&&!/^(13|14)\d{2}[\/\-]/.test(cand)){
    return cand;
   }
  }
 
  const headerOnly=normalizeDigits(headerRows(rows).map(r=>r.text).join('\n'));
- const slashMatch=headerOnly.match(/([1-9][0-9]{6,12}\s*[\/\\\-]\s*[0-9]{1,4})/);
- if(slashMatch&&slashMatch[1]){
-  const cand=slashMatch[1].replace(/\\/g,'/').replace(/-/g,'/').replace(/\s+/g,'').trim();
-  if(!/^(13|14)\d{2}\//.test(cand))return cand;
+ const r48Slash=headerOnly.match(/\b(48[0-9\s]{7,12}\s*[\/\\\-|lI]\s*[0-9]{1,4})\b/);
+ if(r48Slash&&r48Slash[1]){
+  return r48Slash[1].replace(/[|lI\\-]/g,'/').replace(/\s+/g,'').trim();
  }
 
- const longDigits=headerOnly.match(/(?:^|[^\d])(4\d{9,10})(?:[^\d]|$)/);
- if(longDigits&&longDigits[1]){
-  const rawNum=longDigits[1];
+ const r48Plain=headerOnly.match(/\b(48[0-9\s]{7,12})\b/);
+ if(r48Plain&&r48Plain[1]){
+  const rawNum=r48Plain[1].replace(/\s+/g,'').trim();
   return rawNum.length===11?rawNum.slice(0,10)+'/'+rawNum.slice(10):rawNum;
  }
 
  return '';
 }
 
-/* =========================================================
-   OCR: استخراج مباشر من النص الكامل والأسطر
-========================================================= */
 function extractDirectFromText(fullText,rows){
  const allText=normalizeDigits([
   cleanArabicPDF(fullText||''),
@@ -911,9 +884,6 @@ function extractDirectFromText(fullText,rows){
  return {number,transactionType,date,subject};
 }
 
-/* =========================================================
-   OCR: استخراج وتنقية الجهة
-========================================================= */
 function cleanEntityName(raw){
  let s=cleanArabicPDF(raw)
   .replace(/[:：،؛\-–—]+$/g,'')
@@ -960,9 +930,6 @@ function analyzeHeader(rows,fullText){
  };
 }
 
-/* =========================================================
-   تشغيل OCR على الصفحة الأولى فقط
-========================================================= */
 async function runOCRPageOne(pdf,status){
  if(typeof Tesseract==='undefined')throw new Error('مكتبة OCR غير متاحة.');
  const page=await pdf.getPage(1);
@@ -1041,9 +1008,6 @@ function fillExtractedFields(p,data){
  '<br><b>تنبيه:</b> راجع البيانات مقابل الخطاب الأصلي قبل الحفظ. لم يتم حفظ أي بيانات تلقائيًا.';
 }
 
-/* =========================================================
-   تشغيل عملية الاستخراج والتحقق من الملف
-========================================================= */
 async function extractPdf(p){
  if(ocrBusy){alert('هناك عملية استخراج قيد التنفيذ. انتظر حتى تنتهي.');return;}
  const input=document.getElementById(p+'Pdf');
@@ -1082,9 +1046,6 @@ async function extractPdf(p){
  }
 }
 
-/* =========================================================
-   النسخ الاحتياطي والاستعادة
-========================================================= */
 function exportBackup(){
  try{
   const blob=new Blob([JSON.stringify(records)],{type:'application/json'});
@@ -1136,9 +1097,6 @@ function importBackup(e){
  r.readAsText(file);
 }
 
-/* =========================================================
-   قراءة بيانات QR
-========================================================= */
 function readQR(){
  const match=location.hash.match(/#record=(.+)$/);
  if(!match)return;
@@ -1161,9 +1119,6 @@ function readQR(){
  }
 }
 
-/* =========================================================
-   أحداث اختيار المرفقات وبدء التشغيل
-========================================================= */
 document.getElementById('inPdf').addEventListener('change',function(){
  document.getElementById('inPdfStatus').textContent=this.files[0]?'الملف المختار: '+this.files[0].name:'';
  document.getElementById('inExtractStatus').textContent='';
