@@ -33,7 +33,7 @@ input:focus,textarea:focus,select:focus{outline:2px solid #b4d9c2}
 .field{margin-bottom:13px}
 .actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
 .table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:700px}
+table{width:100%;border-collapse:collapse;min-width:700px;direction:rtl}
 th{background:#e5f0e9;color:var(--green)}
 td,th{border:1px solid var(--border);padding:11px 8px;text-align:center;font-size:13px;vertical-align:middle}
 td.subject{text-align:right;min-width:170px}
@@ -46,9 +46,9 @@ footer{text-align:center;padding:20px;color:#65766c;font-size:12px}
 .report-head{text-align:center;border-bottom:3px double var(--gold);padding-bottom:15px;margin-bottom:18px}
 .report-head h2{color:var(--green)}
 .notice{background:#fff8e9;border:1px solid #ead8a8;padding:12px;border-radius:8px;font-size:13px}
-.qr-mini{display:flex;justify-content:center;align-items:center;min-width:85px;min-height:85px}
-.qr-mini img,.qr-mini canvas{max-width:80px!important;max-height:80px!important}
-.qr-uploaded{width:82px;height:82px;object-fit:contain;display:block;margin:auto;background:#fff}
+.qr-mini{display:flex;justify-content:center;align-items:center;min-width:78px;min-height:78px;margin:auto}
+.qr-mini img,.qr-mini canvas{max-width:75px!important;max-height:75px!important;display:block}
+.qr-uploaded{width:75px;height:75px;object-fit:contain;display:block;margin:auto;background:#fff}
 .file-status{font-size:12px;color:var(--green);margin-top:5px}
 .modal{position:fixed;inset:0;background:#0009;z-index:9999;display:flex;align-items:center;justify-content:center;padding:14px}
 .modal-card{background:white;border-radius:14px;padding:18px;width:min(100%,460px);max-height:90vh;overflow:auto;text-align:center}
@@ -72,12 +72,12 @@ footer{text-align:center;padding:20px;color:#65766c;font-size:12px}
 .extract-status.error{background:#fff0f0;color:#a52d2d;border:1px solid #edcaca}
 .extract-status.warning{background:#fff8e9;color:#765b19;border:1px solid #ead8a8}
 td.subject,td.entity-cell{direction:rtl;text-align:right;white-space:normal;overflow-wrap:anywhere;line-height:1.8;unicode-bidi:plaintext}
-#reportTable{table-layout:fixed;width:100%;min-width:0}
-#reportTable th:nth-child(1){width:5%}
-#reportTable th:nth-child(2){width:28%}
+#reportTable{table-layout:fixed;width:100%;min-width:0;direction:rtl}
+#reportTable th:nth-child(1){width:6%}
+#reportTable th:nth-child(2){width:27%}
 #reportTable th:nth-child(3){width:27%}
-#reportTable th:nth-child(4){width:13%}
-#reportTable th:nth-child(5){width:15%}
+#reportTable th:nth-child(4){width:14%}
+#reportTable th:nth-child(5){width:14%}
 #reportTable th:nth-child(6){width:12%}
 #reportTable td{white-space:normal;overflow-wrap:anywhere;line-height:1.8}
 #reportTable td:nth-child(4){direction:ltr;white-space:nowrap}
@@ -86,7 +86,7 @@ td.subject,td.entity-cell{direction:rtl;text-align:right;white-space:normal;over
 @media(max-width:600px){.container{padding:8px}.panel{padding:13px}header h2{font-size:19px}.approval-area{grid-template-columns:1fr}}
 @media print{
 @page{size:A4 portrait;margin:10mm}
-body{background:white}
+body{background:white;direction:rtl}
 header,nav,.no-print,footer,#pdfModal{display:none!important}
 body.printing-qr main{display:none!important}
 body.printing-qr #qrModal{position:static;background:white;padding:0;display:block!important}
@@ -96,8 +96,8 @@ body:not(.printing-qr) .modal{display:none!important}
 .container{max-width:none;margin:0;padding:0}
 .panel{box-shadow:none;border:0;padding:5px}
 .report-head,.print-only-head{display:block!important}
-table{min-width:0!important;width:100%}
-th,td{font-size:10px;padding:5px 3px}
+table{min-width:0!important;width:100%;direction:rtl}
+th,td{font-size:10px;padding:5px 4px}
 .report-head h2{font-size:19px}
 .qr-mini img,.qr-mini canvas,.qr-uploaded{max-width:65px!important;max-height:65px!important}
 .report-actions button,.qr-upload-note{display:none!important}
@@ -105,7 +105,7 @@ th,td{font-size:10px;padding:5px 3px}
 .approval-area{grid-template-columns:1fr 1fr;gap:12px}
 .approval-item{border:1px solid #aaa;background:white;min-height:140px}
 #reportTable{table-layout:fixed!important}
-#reportTable td{font-size:9px;line-height:1.7;overflow-wrap:anywhere}
+#reportTable td{font-size:9.5px;line-height:1.7;overflow-wrap:anywhere}
 }
 </style>
 </head>
@@ -612,9 +612,10 @@ function generateReport(){
   return;
  }
  list.forEach((x,i)=>{
-  const qrId='reportQR_'+escapeHTML(x.id);
   const fileInputId='qrFile_'+escapeHTML(x.id);
-  const qrContent=x.reportQRImage?`<img class="qr-uploaded" src="${x.reportQRImage}" alt="رمز QR المرفق">`:`<div class="qr-mini" id="${qrId}"></div>`;
+  const qrContent=x.reportQRImage
+   ?`<img class="qr-uploaded" src="${x.reportQRImage}" alt="رمز QR المرفق">`
+   :`<div class="qr-mini"></div>`;
   const tr=document.createElement('tr');
   tr.innerHTML=`<td>${i+1}</td>
   <td class="subject">${escapeHTML(x.subject)}</td>
@@ -630,10 +631,13 @@ function generateReport(){
   </td>
   <td>${x.pdf?`<div class="report-actions"><button class="blue no-print" onclick="openPDF('${p}','${escapeHTML(x.id)}')">فتح PDF</button><span class="pdf-label hidden">مرفق PDF</span></div>`:'<span class="small">لا يوجد مرفق</span>'}</td>`;
   body.appendChild(tr);
-  if(!x.reportQRImage&&typeof QRCode!=='undefined'){
-   new QRCode(tr.querySelector('.qr-mini'),{text:makeQR(x,p),width:75,height:75,correctLevel:QRCode.CorrectLevel.M});
-  }else if(!x.reportQRImage){
-   tr.querySelector('.qr-mini').textContent='تعذر إنشاء QR';
+  if(!x.reportQRImage){
+   const miniBox=tr.querySelector('.qr-mini');
+   if(typeof QRCode!=='undefined'){
+    new QRCode(miniBox,{text:makeQR(x,p),width:75,height:75,correctLevel:QRCode.CorrectLevel.M});
+   }else{
+    miniBox.textContent='تعذر إنشاء QR';
+   }
   }
  });
 }
@@ -686,6 +690,17 @@ function removeReportQR(p,id){
 /* =========================================================
    OCR: تنظيف النص العربي وتوحيد الكلمات
 ========================================================= */
+function sanitizeArabicOCRText(text){
+ return String(text??'')
+  // إزالة الكلمات أو المقاطع الإنجليزية العشوائية التي تظهر وسط النص العربي
+  .replace(/\b[a-zA-Z]{1,12}\b/g,' ')
+  // إزالة الرموز غير المألوفة مع الحفاظ على علامات الترقيم والشرطات والكسور
+  .replace(/["'“”`~^*_=+<>\\|{}[\]]/g,' ')
+  // إزالة الحروف العربية الفردية الشاذة بين المسافات باستثناء حروف العطف الشائعة عند الحاجة
+  .replace(/(^|\s)[ء-ي](\s|$)/g,' ')
+  .replace(/\s+/g,' ')
+  .trim();
+}
 function cleanArabicPDF(text){
  let s=normalizeDigits(text)
  .replace(/\r/g,'\n')
@@ -701,10 +716,17 @@ function cleanArabicPDF(text){
   [/ب\s+خصوص/g,'بخصوص'],
   [/ر\s+قم/g,'رقم'],
   [/المعامله/g,'المعاملة'],
-  [/المعاملة\s+/g,'المعاملة ']
+  [/المعاملة\s+/g,'المعاملة '],
+  [/الاداره/g,'الإدارة'],
+  [/الادارة/g,'الإدارة'],
+  [/المسئولية/g,'المسؤولية'],
+  [/المسولية/g,'المسؤولية'],
+  [/المجتمعيه/g,'المجتمعية'],
+  [/التطوعي/g,'التطوعي']
  ];
  fixes.forEach(([a,b])=>s=s.replace(a,b));
- return s.replace(/[ \t]+/g,' ')
+ return sanitizeArabicOCRText(s)
+ .replace(/[ \t]+/g,' ')
  .replace(/\s+([،؛:.)])/g,'$1')
  .replace(/\n{2,}/g,'\n').trim();
 }
@@ -760,7 +782,7 @@ function getOCRTextRows(ocrData,imageWidth,imageHeight){
   paragraph:w.par_num,
   line:w.line_num
  }))
- .filter(w=>w.confidence>=10);
+ .filter(w=>w.confidence>=15);
 
  const rows=[];
  words.sort((a,b)=>a.cy-b.cy);
@@ -807,6 +829,55 @@ function getOCRTextRows(ocrData,imageWidth,imageHeight){
 }
 function headerRows(rows){
  return rows.filter(r=>r.topRatio>=0&&r.topRatio<=0.45);
+}
+
+/* =========================================================
+   OCR: استخراج مباشر من نصوص الأسطر للمعاملات الرسمية
+========================================================= */
+function extractDirectFromRows(rows){
+ let number='';
+ let transactionType='';
+ let date='';
+ let subject='';
+
+ for(const r of headerRows(rows)){
+  const rawLine=normalizeDigits(String(r.text||''));
+
+  // رقم المعاملة (يدعم الأرقام المرفقة بشرطة أو شرطة مائلة مثل 4800337292/1)
+  if(!number){
+   const numMatch=rawLine.match(/رقم\s*(?:المعاملة|المعامله|الخطاب)?\s*[:：\-]?\s*([0-9]+(?:\s*[\/\-]\s*[0-9]+)*)/);
+   if(numMatch){
+    const candidate=numMatch[1].replace(/\s+/g,'').trim();
+    if(candidate.length>=4&&!/^(13|14)\d{2}[\/\-]/.test(candidate)){
+     number=candidate;
+    }
+   }
+  }
+
+  // نوع المعاملة
+  if(!transactionType){
+   const typeMatch=rawLine.match(/نوع\s*(?:المعاملة|المعامله)\s*[:：\-]?\s*([^\s:：،؛]+)/);
+   if(typeMatch&&typeMatch[1]){
+    transactionType=typeMatch[1].trim();
+   }
+  }
+
+  // تاريخ المعاملة الهجري
+  if(!date){
+   const d=extractHijriDateFromText(rawLine);
+   if(d)date=d;
+  }
+
+  // موضوع الخطاب
+  if(!subject){
+   const subjMatch=rawLine.match(/(?:الموضوع|موضوع\s*الخطاب)\s*[:：\-]?\s*(.+)$/);
+   if(subjMatch&&subjMatch[1]&&subjMatch[1].trim().length>=3){
+    subject=subjMatch[1].trim();
+   }
+  }
+ }
+
+ return {number,transactionType,date,subject};
 }
 
 /* =========================================================
@@ -868,8 +939,8 @@ function splitCandidateSides(label,labels){
  const bounds=labelBounds(label);
  const otherLabels=labels.filter(x=>x!==label&&x.row===row);
  const excluded=new Set(label.labelWords||[]);
- const maxGap=Math.max(130,row.pageWidth*.12);
- const maxVertical=Math.max(24,row.height*1.25);
+ const maxGap=Math.max(160,row.pageWidth*.15);
+ const maxVertical=Math.max(26,row.height*1.3);
  const candidates=row.items.filter(w=>!excluded.has(w));
  const result={left:[],right:[]};
 
@@ -890,8 +961,8 @@ function splitCandidateSides(label,labels){
 }
 function isNumberCandidate(t){
  const s=normalizeDigits(String(t??'')).replace(/[،,:]/g,'').trim();
- if(!/^[\d\/\-]{1,25}$/.test(s)||!/\d/.test(s))return false;
- if(/^(13|14)\d{2}[\/\-]?(0[1-9]|1[0-2])[\/\-]?([0-2]\d|30)$/.test(s))return false;
+ if(!/^[\d\/\-]{2,25}$/.test(s)||!/\d/.test(s))return false;
+ if(/^(13|14)\d{2}[\/\-](0[1-9]|1[0-2])[\/\-]([0-2]\d|30)$/.test(s))return false;
  return true;
 }
 function isDateCandidate(t){
@@ -907,7 +978,7 @@ function collectSideWords(sideItems,k){
  for(let i=0;i<sideItems.length;i++){
   const item=sideItems[i];
   const w=item.word;
-  if(i>0&&item.gap-previousGap>Math.max(45,w.x1-w.x))break;
+  if(i>0&&item.gap-previousGap>Math.max(55,w.x1-w.x))break;
   if(k==='number'&&!isNumberCandidate(w.text)){
    if(selected.length)break;
    continue;
@@ -933,8 +1004,10 @@ function candidateValueForLabel(label,k,labels){
  const right=collectSideWords(sides.right,k);
 
  if(k==='number'){
-  const candidates=[left,right].flatMap(s=>s.split(/\s+/)).filter(isNumberCandidate);
-  return candidates.length>=1?normalizeDigits(candidates[0]):'';
+  const joined=normalizeDigits([left,right].join(' ')).replace(/\s+/g,'');
+  const match=joined.match(/[0-9]+(?:[\/\-][0-9]+)*/g)||[];
+  const best=match.filter(isNumberCandidate).sort((a,b)=>b.length-a.length)[0]||'';
+  return best;
  }
  if(k==='date'){
   for(const text of [left,right]){
@@ -980,43 +1053,71 @@ function findFieldValue(rows,k,labels){
  }
  return '';
 }
+function inferTransactionType(rows,subject){
+ const combined=normalizeText([subject,...rows.slice(0,14).map(r=>r.text)].join(' '));
+ const knownTypes=['تعميم','خطاب','قرار','توجيه','إفادة','افادة','محضر','تقرير','دعوة','طلب'];
+ for(const t of knownTypes){
+  if(new RegExp('(?:^|\\s)'+normalizeText(t)+'(?:\\s|$)').test(combined))return t;
+ }
+ return '';
+}
 
 /* =========================================================
-   OCR: استخراج الجهة من أعلى يمين الترويسة
+   OCR: استخراج وتنقية الجهة من أعلى يمين الترويسة
 ========================================================= */
+function cleanEntityName(raw){
+ let s=cleanArabicPDF(raw)
+  .replace(/[:：،؛\-–—]+$/g,'')
+  .replace(/^[:：،؛\-–—]+/g,'')
+  .replace(/\s+/g,' ')
+  .trim();
+ // إزالة أي كلمات أو أجزاء غير إدارية مثل المرفقات أو الأرقام البحتة
+ s=s.replace(/المرفقات.*$/i,'').trim();
+ if(/^\d+$/.test(normalizeDigits(s)))return '';
+ return s;
+}
 function extractEntityFromHeader(rows){
- const list=headerRows(rows);
- const excluded=/وزارة التعليم|الإدارة العامة للتعليم بمنطقة الجوف|المملكة العربية السعودية|مدرسة عبدالله بن مسعود|رقم المعاملة|رقم الخطاب|تاريخ المعاملة|نوع المعاملة|الموضوع|موضوع الخطاب/i;
+ const topRows=rows.filter(r=>r.topRatio>=0&&r.topRatio<=0.28);
+ const excluded=/وزارة التعليم|الإدارة العامة للتعليم بمنطقة الجوف|الادارة العامة للتعليم بمنطقة الجوف|المملكة العربية السعودية|مدرسة عبدالله بن مسعود|رقم المعاملة|رقم الخطاب|تاريخ المعاملة|نوع المعاملة|الموضوع|موضوع الخطاب|المرفقات|حرصا من|السلام عليكم|سعادة/i;
  const selected=[];
  const patterns=/الشؤون|شؤون|قسم|إدارة|ادارة|أداء التعليم|اداء التعليم|وكالة|وحدة|مكتب|النشاط|الإشراف|الاشراف|التوجيه|المسؤولية|المجتمعية|العمل التطوعي|تعليمية|التعليمية|الموارد البشرية|الخدمات|المدرسية|الطلاب|الطالبات/;
- for(const r of list){
-  if(r.topRatio>.42)continue;
-  const rightWords=r.items.filter(w=>w.cx>=r.pageWidth*.48);
+
+ for(const r of topRows){
+  const rightWords=r.items.filter(w=>w.cx>=r.pageWidth*.38);
   if(!rightWords.length)continue;
-  const line=normalizeFieldValue(rightWords.sort((a,b)=>b.cx-a.cx).map(w=>w.text).join(' '));
-  if(!line||excluded.test(line)||line.length<3||line.length>120)continue;
-  if(/^\d+$/.test(normalizeDigits(line)))continue;
+  let line=cleanEntityName(rightWords.sort((a,b)=>b.cx-a.cx).map(w=>w.text).join(' '));
+  line=line.split(/[:：]/)[0].trim();
+  if(!line||excluded.test(line)||line.length<4||line.length>80)continue;
+  if(line.split(/\s+/).length>9)continue;
   if(patterns.test(line)){
    if(!selected.some(x=>normalizeForMatch(x)===normalizeForMatch(line)))selected.push(line);
   }
  }
- return selected.slice(0,4).join(' – ');
+ return selected.slice(0,3).join(' – ');
 }
 function analyzeHeader(rows){
+ const direct=extractDirectFromRows(rows);
  const labels=locateAllLabels(rows);
- let date=findFieldValue(rows,'date',labels);
+
+ let date=direct.date||findFieldValue(rows,'date',labels);
  if(!date){
   for(const r of headerRows(rows)){
    const fallback=extractHijriDateFromText(r.text);
    if(fallback){date=fallback;break;}
   }
  }
+
+ const subject=direct.subject||findFieldValue(rows,'subject',labels);
+ const number=direct.number||findFieldValue(rows,'number',labels);
+ const transactionType=direct.transactionType||findFieldValue(rows,'type',labels)||inferTransactionType(rows,subject);
+ const entity=extractEntityFromHeader(rows);
+
  return {
-  number:findFieldValue(rows,'number',labels),
-  transactionType:findFieldValue(rows,'type',labels),
+  number,
+  transactionType,
   date,
-  entity:extractEntityFromHeader(rows),
-  subject:findFieldValue(rows,'subject',labels)
+  entity,
+  subject
  };
 }
 
