@@ -692,7 +692,6 @@ function removeReportQR(p,id){
 ========================================================= */
 function sanitizeArabicOCRText(text){
  return String(text??'')
-  // إزالة الكلمات الإنجليزية غير المطلوبة مع الحفاظ على الأرقام والرموز
   .replace(/\b[a-zA-Z]{2,}\b/g,' ')
   .replace(/["'“”`~^*_=+<>\\|{}[\]]/g,' ')
   .replace(/\s+/g,' ')
@@ -733,21 +732,11 @@ function normalizeFieldValue(t){
 function normalizeForMatch(t){
  return normalizeText(normalizeFieldValue(t)).replace(/[:：\-]/g,' ').replace(/\s+/g,' ').trim();
 }
-function normalizeOCRToken(s){
- return normalizeDigits(String(s??''))
- .replace(/[\u064B-\u065F\u0670ـ]/g,'')
- .replace(/[أإآٱ]/g,'ا')
- .replace(/ة/g,'ه')
- .replace(/ى/g,'ي')
- .replace(/[^\u0600-\u06FFa-zA-Z0-9]/gi,'')
- .toLowerCase();
-}
 function isHijriDateValid(y,m,d){
  return y>=1300&&y<=1499&&m>=1&&m<=12&&d>=1&&d<=30;
 }
 function extractHijriDateFromText(text){
  const s=normalizeDigits(String(text??''));
- // أولاً البحث عن تاريخ هجري صريح يبدأ بـ 14 أو 13
  const hijriMatches=[...s.matchAll(/((?:14|13)\d{2})\s*[\/.\-\\]\s*(\d{1,2})\s*[\/.\-\\]\s*(\d{1,2})/g)];
  for(const m of hijriMatches){
   const y=+m[1],mo=+m[2],d=+m[3];
@@ -755,7 +744,6 @@ function extractHijriDateFromText(text){
    return m[1]+'/'+String(mo).padStart(2,'0')+'/'+String(d).padStart(2,'0');
   }
  }
- // ثانياً البحث عن صيغة يوم-شهر-سنة هجرية مثل 13-06-1448
  const dmyMatches=[...s.matchAll(/(\d{1,2})\s*[\/.\-\\]\s*(\d{1,2})\s*[\/.\-\\]\s*((?:14|13)\d{2})/g)];
  for(const m of dmyMatches){
   const d=+m[1],mo=+m[2],y=+m[3];
@@ -838,6 +826,37 @@ function headerRows(rows){
 }
 
 /* =========================================================
+   OCR: استخراج رقم المعاملة بدقة عالية
+========================================================= */
+function extractTransactionNumber(allText,rows){
+ const rawTop=normalizeDigits([
+  String(allText||''),
+  ...headerRows(rows).map(r=>r.text)
+ ].join('\n'));
+
+ // 1. البحث بجوار كلمة "رقم المعاملة" أو "رقم الخطاب" حتى لو كان الرقم في السطر التالي
+ const nearLabel=rawTop.match(/رقم\s*(?:المعاملة|المعامله|الخطاب)?\s*[:：\-]?\s*\n?\s*([0-9]{6,15}(?:\s*[\/\-]\s*[0-9]{1,5})?)/);
+ if(nearLabel&&nearLabel[1]){
+  const cand=nearLabel[1].replace(/\s+/g,'').trim();
+  if(!/^05\d{8}$/.test(cand)&&!/^(13|14)\d{2}[\/\-]/.test(cand)){
+   return cand;
+  }
+ }
+
+ // 2. البحث في الترويسة عن رقم معاملة طويل (8 إلى 12 خانة مثل 4800337292 أو 4800337292/1)
+ const headerOnly=normalizeDigits(headerRows(rows).map(r=>r.text).join(' '));
+ const longMatches=[...headerOnly.matchAll(/(?:^|[^\d])([1-9][0-9]{7,11}(?:\s*[\/\-]\s*[0-9]{1,4})?)(?:[^\d]|$)/g)];
+ for(const m of longMatches){
+  const cand=m[1].replace(/\s+/g,'').trim();
+  if(!/^05\d{8}$/.test(cand)&&!/^(13|14)\d{2}[\/\-]/.test(cand)){
+   return cand;
+  }
+ }
+
+ return '';
+}
+
+/* =========================================================
    OCR: استخراج مباشر من النص الكامل والأسطر
 ========================================================= */
 function extractDirectFromText(fullText,rows){
@@ -846,28 +865,12 @@ function extractDirectFromText(fullText,rows){
   ...rows.map(r=>r.text)
  ].join('\n'));
 
- let number='';
+ const number=extractTransactionNumber(fullText,rows);
  let transactionType='';
  let date='';
  let subject='';
 
- // 1. رقم المعاملة: البحث الصريح بجوار كلمة "رقم" مع تجنب الأرقام القصيرة أو الأنماط الشاذة
- const numPatterns=[
-  /رقم\s*(?:المعاملة|المعامله|الخطاب)?\s*[:：\-]?\s*([0-9]{6,20}(?:\s*[\/\-]\s*[0-9]{1,6})*)/,
-  /رقم\s*(?:المعاملة|المعامله|الخطاب)?\s*[:：\-]?\s*([0-9]+(?:\s*[\/\-]\s*[0-9]+)+)/
- ];
- for(const pat of numPatterns){
-  const m=allText.match(pat);
-  if(m&&m[1]){
-   const cand=m[1].replace(/\s+/g,'').trim();
-   if(cand.length>=4&&!/^(13|14)\d{2}[\/\-]/.test(cand)){
-    number=cand;
-    break;
-   }
-  }
- }
-
- // 2. نوع المعاملة: البحث الصريح ثم الاستنتاج الدقيق
+ // نوع المعاملة
  const typeMatch=allText.match(/نوع\s*(?:المعاملة|المعامله)\s*[:：\-]?\s*(تعميم|خطاب|قرار|توجيه|إفادة|افادة|محضر|تقرير|دعوة|طلب)/);
  if(typeMatch&&typeMatch[1]){
   transactionType=typeMatch[1].trim();
@@ -882,7 +885,7 @@ function extractDirectFromText(fullText,rows){
   }
  }
 
- // 3. التاريخ الهجري: البحث بجوار كلمة "تاريخ" أولاً ثم في النص
+ // التاريخ الهجري
  const dateLabelMatch=allText.match(/تاريخ\s*(?:المعاملة|المعامله|الخطاب)?\s*[:：\-]?\s*([^\n]+)/);
  if(dateLabelMatch&&dateLabelMatch[1]){
   date=extractHijriDateFromText(dateLabelMatch[1]);
@@ -891,7 +894,7 @@ function extractDirectFromText(fullText,rows){
   date=extractHijriDateFromText(allText);
  }
 
- // 4. موضوع الخطاب
+ // موضوع الخطاب
  const subjMatch=allText.match(/(?:الموضوع|موضوع\s*الخطاب)\s*[:：\-]?\s*([^\n]+)/);
  if(subjMatch&&subjMatch[1]&&subjMatch[1].trim().length>=3){
   subject=subjMatch[1].split(/السلام عليكم|سعادة|المرفقات|عاجل/i)[0].trim();
@@ -931,7 +934,6 @@ function extractEntityFromHeader(rows,fullText){
 
  if(selected.length)return selected.slice(0,3).join(' – ');
 
- // احتياطي من النص الكامل إذا لم تلتقط الأسطر الجهة
  const cleanAll=cleanArabicPDF(fullText||'');
  if(cleanAll.includes('المسؤولية المجتمعية')&&cleanAll.includes('العمل التطوعي')){
   return 'المسؤولية المجتمعية والعمل التطوعي';
