@@ -692,12 +692,9 @@ function removeReportQR(p,id){
 ========================================================= */
 function sanitizeArabicOCRText(text){
  return String(text??'')
-  // إزالة الكلمات أو المقاطع الإنجليزية العشوائية التي تظهر وسط النص العربي
-  .replace(/\b[a-zA-Z]{1,12}\b/g,' ')
-  // إزالة الرموز غير المألوفة مع الحفاظ على علامات الترقيم والشرطات والكسور
+  // إزالة الكلمات الإنجليزية غير المطلوبة مع الحفاظ على الأرقام والرموز
+  .replace(/\b[a-zA-Z]{2,}\b/g,' ')
   .replace(/["'“”`~^*_=+<>\\|{}[\]]/g,' ')
-  // إزالة الحروف العربية الفردية الشاذة بين المسافات باستثناء حروف العطف الشائعة عند الحاجة
-  .replace(/(^|\s)[ء-ي](\s|$)/g,' ')
   .replace(/\s+/g,' ')
   .trim();
 }
@@ -750,11 +747,20 @@ function isHijriDateValid(y,m,d){
 }
 function extractHijriDateFromText(text){
  const s=normalizeDigits(String(text??''));
- const matches=[...s.matchAll(/((?:14|13)\d{2})\s*[\/.\-\\]\s*(\d{1,2})\s*[\/.\-\\]\s*(\d{1,2})/g)];
- for(const m of matches){
+ // أولاً البحث عن تاريخ هجري صريح يبدأ بـ 14 أو 13
+ const hijriMatches=[...s.matchAll(/((?:14|13)\d{2})\s*[\/.\-\\]\s*(\d{1,2})\s*[\/.\-\\]\s*(\d{1,2})/g)];
+ for(const m of hijriMatches){
   const y=+m[1],mo=+m[2],d=+m[3];
   if(isHijriDateValid(y,mo,d)){
    return m[1]+'/'+String(mo).padStart(2,'0')+'/'+String(d).padStart(2,'0');
+  }
+ }
+ // ثانياً البحث عن صيغة يوم-شهر-سنة هجرية مثل 13-06-1448
+ const dmyMatches=[...s.matchAll(/(\d{1,2})\s*[\/.\-\\]\s*(\d{1,2})\s*[\/.\-\\]\s*((?:14|13)\d{2})/g)];
+ for(const m of dmyMatches){
+  const d=+m[1],mo=+m[2],y=+m[3];
+  if(isHijriDateValid(y,mo,d)){
+   return m[3]+'/'+String(mo).padStart(2,'0')+'/'+String(d).padStart(2,'0');
   }
  }
  return '';
@@ -782,7 +788,7 @@ function getOCRTextRows(ocrData,imageWidth,imageHeight){
   paragraph:w.par_num,
   line:w.line_num
  }))
- .filter(w=>w.confidence>=15);
+ .filter(w=>w.confidence>=10);
 
  const rows=[];
  words.sort((a,b)=>a.cy-b.cy);
@@ -828,242 +834,74 @@ function getOCRTextRows(ocrData,imageWidth,imageHeight){
  });
 }
 function headerRows(rows){
- return rows.filter(r=>r.topRatio>=0&&r.topRatio<=0.45);
+ return rows.filter(r=>r.topRatio>=0&&r.topRatio<=0.48);
 }
 
 /* =========================================================
-   OCR: استخراج مباشر من نصوص الأسطر للمعاملات الرسمية
+   OCR: استخراج مباشر من النص الكامل والأسطر
 ========================================================= */
-function extractDirectFromRows(rows){
+function extractDirectFromText(fullText,rows){
+ const allText=normalizeDigits([
+  cleanArabicPDF(fullText||''),
+  ...rows.map(r=>r.text)
+ ].join('\n'));
+
  let number='';
  let transactionType='';
  let date='';
  let subject='';
 
- for(const r of headerRows(rows)){
-  const rawLine=normalizeDigits(String(r.text||''));
-
-  // رقم المعاملة (يدعم الأرقام المرفقة بشرطة أو شرطة مائلة مثل 4800337292/1)
-  if(!number){
-   const numMatch=rawLine.match(/رقم\s*(?:المعاملة|المعامله|الخطاب)?\s*[:：\-]?\s*([0-9]+(?:\s*[\/\-]\s*[0-9]+)*)/);
-   if(numMatch){
-    const candidate=numMatch[1].replace(/\s+/g,'').trim();
-    if(candidate.length>=4&&!/^(13|14)\d{2}[\/\-]/.test(candidate)){
-     number=candidate;
-    }
+ // 1. رقم المعاملة: البحث الصريح بجوار كلمة "رقم" مع تجنب الأرقام القصيرة أو الأنماط الشاذة
+ const numPatterns=[
+  /رقم\s*(?:المعاملة|المعامله|الخطاب)?\s*[:：\-]?\s*([0-9]{6,20}(?:\s*[\/\-]\s*[0-9]{1,6})*)/,
+  /رقم\s*(?:المعاملة|المعامله|الخطاب)?\s*[:：\-]?\s*([0-9]+(?:\s*[\/\-]\s*[0-9]+)+)/
+ ];
+ for(const pat of numPatterns){
+  const m=allText.match(pat);
+  if(m&&m[1]){
+   const cand=m[1].replace(/\s+/g,'').trim();
+   if(cand.length>=4&&!/^(13|14)\d{2}[\/\-]/.test(cand)){
+    number=cand;
+    break;
    }
   }
+ }
 
-  // نوع المعاملة
-  if(!transactionType){
-   const typeMatch=rawLine.match(/نوع\s*(?:المعاملة|المعامله)\s*[:：\-]?\s*([^\s:：،؛]+)/);
-   if(typeMatch&&typeMatch[1]){
-    transactionType=typeMatch[1].trim();
+ // 2. نوع المعاملة: البحث الصريح ثم الاستنتاج الدقيق
+ const typeMatch=allText.match(/نوع\s*(?:المعاملة|المعامله)\s*[:：\-]?\s*(تعميم|خطاب|قرار|توجيه|إفادة|افادة|محضر|تقرير|دعوة|طلب)/);
+ if(typeMatch&&typeMatch[1]){
+  transactionType=typeMatch[1].trim();
+ }else{
+  const topBlock=normalizeText(rows.slice(0,18).map(r=>r.text).join(' '));
+  const known=['تعميم','خطاب','قرار','توجيه','إفادة','افادة','محضر','تقرير','دعوة','طلب'];
+  for(const k of known){
+   if(new RegExp('(?:^|\\s)'+normalizeText(k)+'(?:\\s|$)').test(topBlock)){
+    transactionType=k;
+    break;
    }
   }
+ }
 
-  // تاريخ المعاملة الهجري
-  if(!date){
-   const d=extractHijriDateFromText(rawLine);
-   if(d)date=d;
-  }
+ // 3. التاريخ الهجري: البحث بجوار كلمة "تاريخ" أولاً ثم في النص
+ const dateLabelMatch=allText.match(/تاريخ\s*(?:المعاملة|المعامله|الخطاب)?\s*[:：\-]?\s*([^\n]+)/);
+ if(dateLabelMatch&&dateLabelMatch[1]){
+  date=extractHijriDateFromText(dateLabelMatch[1]);
+ }
+ if(!date){
+  date=extractHijriDateFromText(allText);
+ }
 
-  // موضوع الخطاب
-  if(!subject){
-   const subjMatch=rawLine.match(/(?:الموضوع|موضوع\s*الخطاب)\s*[:：\-]?\s*(.+)$/);
-   if(subjMatch&&subjMatch[1]&&subjMatch[1].trim().length>=3){
-    subject=subjMatch[1].trim();
-   }
-  }
+ // 4. موضوع الخطاب
+ const subjMatch=allText.match(/(?:الموضوع|موضوع\s*الخطاب)\s*[:：\-]?\s*([^\n]+)/);
+ if(subjMatch&&subjMatch[1]&&subjMatch[1].trim().length>=3){
+  subject=subjMatch[1].split(/السلام عليكم|سعادة|المرفقات|عاجل/i)[0].trim();
  }
 
  return {number,transactionType,date,subject};
 }
 
 /* =========================================================
-   OCR: تحديد عناوين الحقول في الترويسة
-========================================================= */
-function fieldAliases(k){
- if(k==='number')return ['رقم المعاملة','رقم المعامله','رقم الخطاب','رقم'];
- if(k==='date')return ['تاريخ المعاملة','تاريخ المعامله','تاريخ الخطاب'];
- if(k==='type')return ['نوع المعاملة','نوع المعامله'];
- if(k==='subject')return ['موضوع الخطاب','الموضوع'];
- return [];
-}
-function findLabelInRow(row,k){
- const aliases=fieldAliases(k).map(normalizeOCRToken);
- const words=row.items;
- for(let start=0;start<words.length;start++){
-  let combined='';
-  for(let end=start;end<Math.min(words.length,start+7);end++){
-   combined+=normalizeOCRToken(words[end].text);
-   if(aliases.includes(combined)){
-    return {row,start,end,labelWords:words.slice(start,end+1),labelText:combined};
-   }
-   if(!aliases.some(a=>a.startsWith(combined)))break;
-  }
- }
- return null;
-}
-function locateAllLabels(rows){
- const result=[];
- for(const row of headerRows(rows)){
-  for(const key of ['number','date','type','subject']){
-   const label=findLabelInRow(row,key);
-   if(label)result.push({...label,key});
-  }
- }
- return result;
-}
-function wordGap(a,b){
- if(a.x1<=b.x)return b.x-a.x1;
- if(b.x1<=a.x)return a.x-b.x1;
- return 0;
-}
-function labelBounds(label){
- const words=label.labelWords||[];
- if(!words.length)return {x0:label.row.minX,x1:label.row.maxX,y:label.row.y};
- return {
-  x0:Math.min(...words.map(w=>w.x)),
-  x1:Math.max(...words.map(w=>w.x1)),
-  y:words.reduce((s,w)=>s+w.cy,0)/words.length
- };
-}
-function isMetadataText(text){
- const t=normalizeOCRToken(text);
- const all=['رقم المعاملة','رقم المعامله','رقم الخطاب','تاريخ المعاملة','تاريخ المعامله','تاريخ الخطاب','نوع المعاملة','نوع المعامله','موضوع الخطاب','الموضوع'];
- return all.some(a=>t.includes(normalizeOCRToken(a)));
-}
-function splitCandidateSides(label,labels){
- const row=label.row;
- const bounds=labelBounds(label);
- const otherLabels=labels.filter(x=>x!==label&&x.row===row);
- const excluded=new Set(label.labelWords||[]);
- const maxGap=Math.max(160,row.pageWidth*.15);
- const maxVertical=Math.max(26,row.height*1.3);
- const candidates=row.items.filter(w=>!excluded.has(w));
- const result={left:[],right:[]};
-
- candidates.forEach(w=>{
-  const vertical=Math.abs(w.cy-bounds.y);
-  if(vertical>maxVertical)return;
-  const gap=wordGap(bounds,w);
-  if(gap>maxGap)return;
-  if(otherLabels.some(other=>(other.labelWords||[]).includes(w)))return;
-  if(w.x1<=bounds.x0)result.left.push({word:w,gap});
-  else if(w.x>=bounds.x1)result.right.push({word:w,gap});
- });
-
- Object.keys(result).forEach(side=>{
-  result[side].sort((a,b)=>b.word.cx-a.word.cx);
- });
- return result;
-}
-function isNumberCandidate(t){
- const s=normalizeDigits(String(t??'')).replace(/[،,:]/g,'').trim();
- if(!/^[\d\/\-]{2,25}$/.test(s)||!/\d/.test(s))return false;
- if(/^(13|14)\d{2}[\/\-](0[1-9]|1[0-2])[\/\-]([0-2]\d|30)$/.test(s))return false;
- return true;
-}
-function isDateCandidate(t){
- const s=normalizeDigits(String(t??'')).replace(/\s/g,'');
- return /^(?:13|14)\d{2}[\/.\-\\]\d{1,2}[\/.\-\\]\d{1,2}$/.test(s)||
- /^(?:13|14)\d{2}$/.test(s)||
- /^\d{1,2}[\/.\-]\d{1,2}$/.test(s);
-}
-function collectSideWords(sideItems,k){
- if(!sideItems.length)return '';
- const selected=[];
- let previousGap=sideItems[0].gap;
- for(let i=0;i<sideItems.length;i++){
-  const item=sideItems[i];
-  const w=item.word;
-  if(i>0&&item.gap-previousGap>Math.max(55,w.x1-w.x))break;
-  if(k==='number'&&!isNumberCandidate(w.text)){
-   if(selected.length)break;
-   continue;
-  }
-  if(k==='date'&&!isDateCandidate(w.text)){
-   if(selected.length)break;
-   continue;
-  }
-  if(k==='type'||k==='subject'){
-   if(isMetadataText(w.text))break;
-   if(/^(رقم|التاريخ|تاريخ|نوع|الموضوع|موضوع|المعاملة|المعامله)$/i.test(normalizeOCRToken(w.text)))break;
-  }
-  selected.push(w);
-  previousGap=item.gap;
-  if((k==='number'||k==='date')&&selected.length>=4)break;
-  if((k==='type'||k==='subject')&&selected.length>=12)break;
- }
- return selected.map(w=>w.text).join(' ');
-}
-function candidateValueForLabel(label,k,labels){
- const sides=splitCandidateSides(label,labels);
- const left=collectSideWords(sides.left,k);
- const right=collectSideWords(sides.right,k);
-
- if(k==='number'){
-  const joined=normalizeDigits([left,right].join(' ')).replace(/\s+/g,'');
-  const match=joined.match(/[0-9]+(?:[\/\-][0-9]+)*/g)||[];
-  const best=match.filter(isNumberCandidate).sort((a,b)=>b.length-a.length)[0]||'';
-  return best;
- }
- if(k==='date'){
-  for(const text of [left,right]){
-   const date=extractHijriDateFromText(text);
-   if(date)return date;
-  }
-  return '';
- }
- const values=[left,right].filter(Boolean).map(s=>cleanLabelValue(s,k)).filter(Boolean);
- if(!values.length)return '';
- values.sort((a,b)=>{
-  const minLength=k==='subject'?3:2;
-  const aValid=a.length>=minLength,bValid=b.length>=minLength;
-  if(aValid!==bValid)return aValid?-1:1;
-  return b.length-a.length;
- });
- const value=values[0]||'';
- if(k==='subject')return value.length>=3&&value.length<=220?value:'';
- return value.length>=2&&value.length<=90?value:'';
-}
-function cleanLabelValue(t,k){
- let s=normalizeFieldValue(t);
- const labels=[
-  'رقم المعاملة','رقم المعامله','رقم الخطاب',
-  'تاريخ المعاملة','تاريخ المعامله','تاريخ الخطاب',
-  'نوع المعاملة','نوع المعامله','موضوع الخطاب','الموضوع'
- ];
- labels.forEach(label=>{
-  const re=new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g');
-  s=s.replace(re,' ');
- });
- s=s.replace(/^[\s:：\-–—|]+/,'').replace(/\s+/g,' ').trim();
- if(k==='subject'){
-  s=s.split(/السلام عليكم|سعادة|المرفقات|رقم المعاملة|تاريخ المعاملة|نوع المعاملة/i)[0].trim();
- }
- return s;
-}
-function findFieldValue(rows,k,labels){
- const found=labels.filter(x=>x.key===k);
- for(const label of found){
-  const value=candidateValueForLabel(label,k,labels);
-  if(value)return value;
- }
- return '';
-}
-function inferTransactionType(rows,subject){
- const combined=normalizeText([subject,...rows.slice(0,14).map(r=>r.text)].join(' '));
- const knownTypes=['تعميم','خطاب','قرار','توجيه','إفادة','افادة','محضر','تقرير','دعوة','طلب'];
- for(const t of knownTypes){
-  if(new RegExp('(?:^|\\s)'+normalizeText(t)+'(?:\\s|$)').test(combined))return t;
- }
- return '';
-}
-
-/* =========================================================
-   OCR: استخراج وتنقية الجهة من أعلى يمين الترويسة
+   OCR: استخراج وتنقية الجهة
 ========================================================= */
 function cleanEntityName(raw){
  let s=cleanArabicPDF(raw)
@@ -1071,53 +909,44 @@ function cleanEntityName(raw){
   .replace(/^[:：،؛\-–—]+/g,'')
   .replace(/\s+/g,' ')
   .trim();
- // إزالة أي كلمات أو أجزاء غير إدارية مثل المرفقات أو الأرقام البحتة
  s=s.replace(/المرفقات.*$/i,'').trim();
  if(/^\d+$/.test(normalizeDigits(s)))return '';
  return s;
 }
-function extractEntityFromHeader(rows){
- const topRows=rows.filter(r=>r.topRatio>=0&&r.topRatio<=0.28);
- const excluded=/وزارة التعليم|الإدارة العامة للتعليم بمنطقة الجوف|الادارة العامة للتعليم بمنطقة الجوف|المملكة العربية السعودية|مدرسة عبدالله بن مسعود|رقم المعاملة|رقم الخطاب|تاريخ المعاملة|نوع المعاملة|الموضوع|موضوع الخطاب|المرفقات|حرصا من|السلام عليكم|سعادة/i;
+function extractEntityFromHeader(rows,fullText){
+ const topRows=rows.filter(r=>r.topRatio>=0&&r.topRatio<=0.38);
+ const excluded=/وزارة التعليم|الإدارة العامة للتعليم بمنطقة الجوف|الادارة العامة للتعليم بمنطقة الجوف|المملكة العربية السعودية|مدرسة عبدالله بن مسعود|رقم المعاملة|رقم الخطاب|تاريخ المعاملة|نوع المعاملة|الموضوع|موضوع الخطاب|المرفقات|حرصا من|السلام عليكم|سعادة|مديرة مدرسة|مدير مدرسة/i;
  const selected=[];
  const patterns=/الشؤون|شؤون|قسم|إدارة|ادارة|أداء التعليم|اداء التعليم|وكالة|وحدة|مكتب|النشاط|الإشراف|الاشراف|التوجيه|المسؤولية|المجتمعية|العمل التطوعي|تعليمية|التعليمية|الموارد البشرية|الخدمات|المدرسية|الطلاب|الطالبات/;
 
  for(const r of topRows){
-  const rightWords=r.items.filter(w=>w.cx>=r.pageWidth*.38);
-  if(!rightWords.length)continue;
-  let line=cleanEntityName(rightWords.sort((a,b)=>b.cx-a.cx).map(w=>w.text).join(' '));
+  let line=cleanEntityName(r.text);
   line=line.split(/[:：]/)[0].trim();
-  if(!line||excluded.test(line)||line.length<4||line.length>80)continue;
+  if(!line||excluded.test(line)||line.length<4||line.length>90)continue;
   if(line.split(/\s+/).length>9)continue;
   if(patterns.test(line)){
    if(!selected.some(x=>normalizeForMatch(x)===normalizeForMatch(line)))selected.push(line);
   }
  }
- return selected.slice(0,3).join(' – ');
-}
-function analyzeHeader(rows){
- const direct=extractDirectFromRows(rows);
- const labels=locateAllLabels(rows);
 
- let date=direct.date||findFieldValue(rows,'date',labels);
- if(!date){
-  for(const r of headerRows(rows)){
-   const fallback=extractHijriDateFromText(r.text);
-   if(fallback){date=fallback;break;}
-  }
+ if(selected.length)return selected.slice(0,3).join(' – ');
+
+ // احتياطي من النص الكامل إذا لم تلتقط الأسطر الجهة
+ const cleanAll=cleanArabicPDF(fullText||'');
+ if(cleanAll.includes('المسؤولية المجتمعية')&&cleanAll.includes('العمل التطوعي')){
+  return 'المسؤولية المجتمعية والعمل التطوعي';
  }
-
- const subject=direct.subject||findFieldValue(rows,'subject',labels);
- const number=direct.number||findFieldValue(rows,'number',labels);
- const transactionType=direct.transactionType||findFieldValue(rows,'type',labels)||inferTransactionType(rows,subject);
- const entity=extractEntityFromHeader(rows);
-
+ return '';
+}
+function analyzeHeader(rows,fullText){
+ const direct=extractDirectFromText(fullText,rows);
+ const entity=extractEntityFromHeader(rows,fullText);
  return {
-  number,
-  transactionType,
-  date,
-  entity,
-  subject
+  number:direct.number||'',
+  transactionType:direct.transactionType||'',
+  date:direct.date||'',
+  entity:entity||'',
+  subject:direct.subject||''
  };
 }
 
@@ -1154,7 +983,7 @@ async function runOCRPageOne(pdf,status){
 function analyzeOCRText(result){
  const d=result.data||{};
  const rows=getOCRTextRows(d,result.width,result.height);
- return rows.length?analyzeHeader(rows):{number:'',transactionType:'',date:'',entity:'',subject:''};
+ return analyzeHeader(rows,d.text||'');
 }
 function fillExtractedFields(p,data){
  const fields={
