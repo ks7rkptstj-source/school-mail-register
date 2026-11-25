@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -17,6 +18,7 @@ header h2{margin:8px 0;font-size:22px}
 header p{margin:5px;font-size:14px}
 nav{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:15px}
 button,.btn{border:0;border-radius:9px;padding:11px 16px;cursor:pointer;font-family:inherit;font-size:14px}
+button:disabled{opacity:.55;cursor:not-allowed}
 nav button{background:white;color:var(--green);border:1px solid var(--border)}
 nav button.active,.primary{background:var(--green);color:white}
 .secondary{background:#e8f0eb;color:var(--green)}
@@ -28,7 +30,7 @@ h3{color:var(--green);margin-top:0}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
 label{display:block;font-size:13px;font-weight:bold;margin-bottom:7px}
 input,select,textarea{width:100%;padding:12px;border:1px solid #ccd9d0;border-radius:8px;font-family:inherit;font-size:14px;background:white}
-input:focus,textarea:focus{outline:2px solid #b4d9c2}
+input:focus,textarea:focus,select:focus{outline:2px solid #b4d9c2}
 .field{margin-bottom:13px}
 .actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
 .table-wrap{overflow-x:auto}
@@ -68,6 +70,8 @@ footer{text-align:center;padding:20px;color:#65766c;font-size:12px}
 .approval-item p{font-size:13px;margin:8px 0}
 .signature-line{border-bottom:1px dashed #888;height:32px;margin-top:5px}
 .extract-status{background:#eef6f0;padding:10px;border-radius:8px;font-size:12px;margin-top:8px;color:var(--green);line-height:1.9;overflow-wrap:anywhere}
+.extract-status.error{background:#fff0f0;color:#a52d2d;border:1px solid #edcaca}
+.extract-status.warning{background:#fff8e9;color:#765b19;border:1px solid #ead8a8}
 td.subject,td.entity-cell{direction:rtl;text-align:right;white-space:normal;overflow-wrap:anywhere;line-height:1.8;unicode-bidi:plaintext}
 #reportTable{table-layout:fixed;width:100%;min-width:0}
 #reportTable th:nth-child(1){width:5%}
@@ -232,7 +236,7 @@ th,td{font-size:10px;padding:5px 3px}
 <div class="panel"><h3>💾 النسخ الاحتياطي</h3><p>احتفظ بنسخة من سجلاتك ومرفقاتك بشكل دوري.</p>
 <div class="actions"><button class="primary" onclick="exportBackup()">تصدير نسخة احتياطية</button>
 <label class="btn secondary">استعادة نسخة احتياطية<input type="file" accept=".json,application/json" onchange="importBackup(event)" hidden></label></div>
-<p class="notice">تنبيه: البيانات محفوظة محليًا في هذا المتصفح والجهاز. النسخة الاحتياطية ضرورية عند تغيير الجهاز أو المتصفح أو مسح بياناته.</p>
+<p class="notice">تنبيه: البيانات محفوظة محليًا في هذا المتصفح والجهاز. النسخة الاحتياطية ضرورية عند تغيير الجهاز أو المتصفح أو مسح بياناته. الاستعادة تستبدل السجلات الحالية بعد التأكيد.</p>
 </div></section>
 
 <section id="recordView" class="page hidden"><div class="panel"><h3>تفاصيل الخطاب</h3><div id="recordDetails"></div>
@@ -248,34 +252,59 @@ th,td{font-size:10px;padding:5px 3px}
 
 <script>
 'use strict';
+
+/* =========================================================
+   إعدادات التخزين والبيانات
+========================================================= */
 const KEY='school_mail_register_v1';
 let records={in:[],out:[]};
 let currentPdfURL=null;
+let ocrBusy=false;
 
 function normalizeDigits(s){
- return String(s??'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+ return String(s??'')
+ .replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+ .replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
 }
 function migrateRecord(r){
  if(!r||typeof r!=='object')return;
+ if(r.id===undefined||r.id===null)r.id=String(Date.now())+'-'+Math.random().toString(36).slice(2,7);
  if(r.number===undefined)r.number='';
  if(r.transactionType===undefined)r.transactionType='';
+ if(r.subject===undefined)r.subject='';
+ if(r.entity===undefined)r.entity='';
+ if(r.date===undefined)r.date='';
  if(r.reportQRImage===undefined)r.reportQRImage=null;
  if(r.pdf===undefined)r.pdf=null;
  if(r.pdfName===undefined)r.pdfName='';
 }
 function load(){
  try{
-  const x=JSON.parse(localStorage.getItem(KEY));
+  const raw=localStorage.getItem(KEY);
+  if(!raw){renderAll();return;}
+  const x=JSON.parse(raw);
   if(x&&Array.isArray(x.in)&&Array.isArray(x.out)){
    records=x;
-   records.in.forEach(migrateRecord);records.out.forEach(migrateRecord);
+   records.in.forEach(migrateRecord);
+   records.out.forEach(migrateRecord);
+  }else{
+   alert('تعذر التعرف على بنية السجلات المحفوظة. لم يتم حذف البيانات.');
   }
- }catch(e){alert('تعذر قراءة السجلات المحفوظة.');}
+ }catch(e){
+  console.error(e);
+  alert('تعذر قراءة السجلات المحفوظة. لم يتم إجراء أي حذف للبيانات.');
+ }
  renderAll();
 }
 function persist(){
- try{localStorage.setItem(KEY,JSON.stringify(records));return true;}
- catch(e){alert('تعذر الحفظ بسبب امتلاء مساحة المتصفح. صدّر نسخة احتياطية وقلّل حجم مرفقات PDF أو صور QR.');return false;}
+ try{
+  localStorage.setItem(KEY,JSON.stringify(records));
+  return true;
+ }catch(e){
+  console.error(e);
+  alert('تعذر الحفظ بسبب امتلاء مساحة المتصفح أو منع التخزين. صدّر نسخة احتياطية، وراجع حجم ملفات PDF وصور QR.');
+  return false;
+ }
 }
 function go(id){
  const b=[...document.querySelectorAll('nav button')].find(x=>x.getAttribute('onclick')?.includes("'"+id+"'"));
@@ -283,7 +312,8 @@ function go(id){
 }
 function showPage(id,btn){
  document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));
- const page=document.getElementById(id);if(page)page.classList.remove('hidden');
+ const page=document.getElementById(id);
+ if(page)page.classList.remove('hidden');
  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
  if(btn)btn.classList.add('active');
  if(id==='home'){updateHome();globalSearch();}
@@ -306,27 +336,49 @@ function saveRecord(e,p){
  const entity=document.getElementById(p+'Entity').value.trim();
  const date=normalizeDigits(document.getElementById(p+'Date').value.trim());
  const file=document.getElementById(p+'Pdf').files[0];
+
+ if(!subject||!entity){alert('أدخل موضوع الخطاب والجهة قبل الحفظ.');return;}
  if(!validDate(date)){alert('اكتب التاريخ الهجري بالصيغة 1448/03/07.');return;}
+
  const old=records[p].find(x=>x.id===id);
- if(file&&file.type!=='application/pdf'&&!file.name.toLowerCase().endsWith('.pdf')){alert('يرجى اختيار ملف PDF فقط.');return;}
+ if(file&&file.type!=='application/pdf'&&!file.name.toLowerCase().endsWith('.pdf')){
+  alert('يرجى اختيار ملف PDF فقط.');return;
+ }
  if(file&&file.size>3*1024*1024&&!confirm('حجم الملف أكبر من 3 ميجابايت. قد لا تتسع له مساحة المتصفح. هل تريد محاولة حفظه؟'))return;
+
  const save=pdf=>{
-  const item={id:id||String(Date.now())+'-'+Math.random().toString(36).slice(2,7),number,transactionType,subject,entity,date,pdf:pdf!==undefined?pdf:(old?.pdf||null),pdfName:file?.name||(old?.pdfName||''),reportQRImage:old?.reportQRImage||null};
+  const item={
+   id:id||String(Date.now())+'-'+Math.random().toString(36).slice(2,7),
+   number,transactionType,subject,entity,date,
+   pdf:pdf!==undefined?pdf:(old?.pdf||null),
+   pdfName:file?.name||(old?.pdfName||''),
+   reportQRImage:old?.reportQRImage||null
+  };
   const previous=[...records[p]];
-  if(old)records[p]=records[p].map(x=>x.id===id?item:x);else records[p].push(item);
+  if(old)records[p]=records[p].map(x=>x.id===id?item:x);
+  else records[p].push(item);
   if(!persist()){records[p]=previous;return;}
-  resetForm(p);renderAll();alert('تم حفظ الخطاب بنجاح.');
+  resetForm(p);
+  renderAll();
+  alert('تم حفظ الخطاب بنجاح.');
  };
- if(file){const r=new FileReader();r.onload=()=>save(r.result);r.onerror=()=>alert('تعذر قراءة الملف.');r.readAsDataURL(file);}else save(undefined);
+ if(file){
+  const r=new FileReader();
+  r.onload=()=>save(r.result);
+  r.onerror=()=>alert('تعذر قراءة الملف. لم يتم حفظ المعاملة.');
+  r.readAsDataURL(file);
+ }else save(undefined);
 }
 function resetForm(p){
  document.getElementById(p+'Form').reset();
  document.getElementById(p+'Id').value='';
  document.getElementById(p+'PdfStatus').textContent='';
  document.getElementById(p+'ExtractStatus').textContent='';
+ document.getElementById(p+'ExtractStatus').className='';
 }
 function editRecord(p,id){
- const x=records[p].find(r=>r.id===id);if(!x)return;
+ const x=records[p].find(r=>r.id===id);
+ if(!x)return;
  document.getElementById(p+'Id').value=x.id;
  document.getElementById(p+'Number').value=x.number||'';
  document.getElementById(p+'TransactionType').value=x.transactionType||'';
@@ -338,20 +390,28 @@ function editRecord(p,id){
 }
 function deleteRecord(p,id){
  if(!confirm('هل أنت متأكد من حذف هذا الخطاب؟'))return;
- const old=[...records[p]];records[p]=records[p].filter(x=>x.id!==id);
- if(!persist()){records[p]=old;return;}renderAll();
+ const old=[...records[p]];
+ records[p]=records[p].filter(x=>x.id!==id);
+ if(!persist()){records[p]=old;return;}
+ renderAll();
 }
 function escapeHTML(s){
  return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+
+/* =========================================================
+   رموز QR وملفات PDF
+========================================================= */
 function makeQR(x,p){
  const data={type:p==='in'?'وارد':'صادر',number:x.number||'',transactionType:x.transactionType||'',subject:x.subject,entity:x.entity,date:x.date};
  const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
  return location.origin+location.pathname+'#record='+encodeURIComponent(encoded);
 }
 function showQR(p,id){
- const x=records[p].find(r=>r.id===id);if(!x)return;
- const box=document.getElementById('qrDisplay');box.innerHTML='';
+ const x=records[p].find(r=>r.id===id);
+ if(!x)return;
+ const box=document.getElementById('qrDisplay');
+ box.innerHTML='';
  if(typeof QRCode==='undefined'){alert('تعذر تحميل مكتبة QR. تحقق من اتصال الإنترنت.');return;}
  new QRCode(box,{text:makeQR(x,p),width:220,height:220,correctLevel:QRCode.CorrectLevel.M});
  document.getElementById('qrCaption').textContent=x.subject+' — '+x.date;
@@ -359,13 +419,17 @@ function showQR(p,id){
 }
 function closeQR(){document.getElementById('qrModal').classList.add('hidden');}
 function dataURLToBlob(url){
- const parts=url.split(',');const mime=(parts[0].match(/:(.*?);/)||[])[1]||'application/pdf';
- const binary=atob(parts[1]);const bytes=new Uint8Array(binary.length);
+ const parts=String(url).split(',');
+ if(parts.length<2)throw new Error('صيغة المرفق غير صحيحة');
+ const mime=(parts[0].match(/:(.*?);/)||[])[1]||'application/pdf';
+ const binary=atob(parts[1]);
+ const bytes=new Uint8Array(binary.length);
  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
  return new Blob([bytes],{type:mime});
 }
 function openPDF(p,id){
- const x=records[p].find(r=>r.id===id);if(!x||!x.pdf){alert('لا يوجد ملف PDF مرفق بهذا الخطاب.');return;}
+ const x=records[p].find(r=>r.id===id);
+ if(!x||!x.pdf){alert('لا يوجد ملف PDF مرفق بهذا الخطاب.');return;}
  try{
   if(currentPdfURL)URL.revokeObjectURL(currentPdfURL);
   currentPdfURL=URL.createObjectURL(dataURLToBlob(x.pdf));
@@ -375,23 +439,45 @@ function openPDF(p,id){
   document.getElementById('pdfDownloadLink').href=currentPdfURL;
   document.getElementById('pdfDownloadLink').download=x.pdfName||'خطاب.pdf';
   document.getElementById('pdfModal').classList.remove('hidden');
- }catch(e){alert('تعذر فتح ملف PDF.');}
+ }catch(e){
+  console.error(e);
+  alert('تعذر فتح ملف PDF. قد يكون المرفق تالفًا.');
+ }
 }
 function closePDF(){
  document.getElementById('pdfModal').classList.add('hidden');
  document.getElementById('pdfFrame').src='about:blank';
  if(currentPdfURL){URL.revokeObjectURL(currentPdfURL);currentPdfURL=null;}
 }
+
+/* =========================================================
+   عرض السجلات والبحث
+========================================================= */
 function renderTable(p){
- const id=p==='in'?'inTable':'outTable';const body=document.querySelector('#'+id+' tbody');body.innerHTML='';
+ const id=p==='in'?'inTable':'outTable';
+ const body=document.querySelector('#'+id+' tbody');
+ body.innerHTML='';
  records[p].forEach((x,i)=>{
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td>${i+1}</td><td>${escapeHTML(x.number||'—')}</td><td>${escapeHTML(x.transactionType||'—')}</td><td class="subject">${escapeHTML(x.subject)}</td><td class="entity-cell">${escapeHTML(x.entity)}</td><td dir="ltr">${escapeHTML(x.date)}</td><td><button class="secondary" onclick="showQR('${p}','${escapeHTML(x.id)}')">عرض QR</button></td><td>${x.pdf?`<button class="blue" onclick="openPDF('${p}','${escapeHTML(x.id)}')">فتح PDF</button>`:'<span class="small">لا يوجد مرفق</span>'}</td><td class="no-print"><button class="secondary" onclick="editRecord('${p}','${escapeHTML(x.id)}')">✏️ تعديل</button> <button class="danger" onclick="deleteRecord('${p}','${escapeHTML(x.id)}')">🗑️ حذف</button></td>`;
+  tr.innerHTML=`<td>${i+1}</td>
+  <td>${escapeHTML(x.number||'—')}</td>
+  <td>${escapeHTML(x.transactionType||'—')}</td>
+  <td class="subject">${escapeHTML(x.subject)}</td>
+  <td class="entity-cell">${escapeHTML(x.entity)}</td>
+  <td dir="ltr">${escapeHTML(x.date)}</td>
+  <td><button class="secondary" onclick="showQR('${p}','${escapeHTML(x.id)}')">عرض QR</button></td>
+  <td>${x.pdf?`<button class="blue" onclick="openPDF('${p}','${escapeHTML(x.id)}')">فتح PDF</button>`:'<span class="small">لا يوجد مرفق</span>'}</td>
+  <td class="no-print"><button class="secondary" onclick="editRecord('${p}','${escapeHTML(x.id)}')">✏️ تعديل</button> <button class="danger" onclick="deleteRecord('${p}','${escapeHTML(x.id)}')">🗑️ حذف</button></td>`;
   body.appendChild(tr);
  });
  if(!records[p].length)body.innerHTML='<tr><td colspan="9">لا توجد خطابات مسجلة حتى الآن</td></tr>';
 }
-function renderAll(){renderTable('in');renderTable('out');updateHome();globalSearch();}
+function renderAll(){
+ renderTable('in');
+ renderTable('out');
+ updateHome();
+ globalSearch();
+}
 function updateHome(){
  document.getElementById('homeIn').textContent=records.in.length;
  document.getElementById('homeOut').textContent=records.out.length;
@@ -399,18 +485,29 @@ function updateHome(){
 }
 function normalizeText(v){
  return normalizeDigits(String(v||'')).toLowerCase()
- .replace(/[ًٌٍَُِّْـ]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه')
- .replace(/[ـ،؛:.,()\-]/g,' ').replace(/\s+/g,' ').trim();
+ .replace(/[ًٌٍَُِّْـ]/g,'')
+ .replace(/[أإآٱ]/g,'ا')
+ .replace(/ى/g,'ي')
+ .replace(/ة/g,'ه')
+ .replace(/[|،؛:.,()\-ـ]/g,' ')
+ .replace(/\s+/g,' ').trim();
 }
 function searchTable(input,id){
  const q=normalizeText(input.value);
- document.querySelectorAll('#'+id+' tbody tr').forEach(r=>r.style.display=!q||normalizeText(r.textContent).includes(q)?'':'none');
+ document.querySelectorAll('#'+id+' tbody tr').forEach(r=>{
+  r.style.display=!q||normalizeText(r.textContent).includes(q)?'':'none';
+ });
 }
 function globalSearch(){
  const q=normalizeText(document.getElementById('globalSearchInput').value);
  const type=document.getElementById('globalSearchType').value;
- const body=document.querySelector('#globalSearchTable tbody');body.innerHTML='';
- if(!q){body.innerHTML='<tr><td colspan="8">اكتب كلمة للبحث في جميع بيانات الخطابات</td></tr>';document.getElementById('searchCount').textContent='اكتب كلمة للبحث في جميع بيانات الخطابات.';return;}
+ const body=document.querySelector('#globalSearchTable tbody');
+ body.innerHTML='';
+ if(!q){
+  body.innerHTML='<tr><td colspan="8">اكتب كلمة للبحث في جميع بيانات الخطابات</td></tr>';
+  document.getElementById('searchCount').textContent='اكتب كلمة للبحث في جميع بيانات الخطابات.';
+  return;
+ }
  const results=[];
  ['in','out'].forEach(p=>{
   if(type!=='all'&&type!==p)return;
@@ -420,13 +517,27 @@ function globalSearch(){
   });
  });
  document.getElementById('searchCount').textContent='عدد النتائج: '+results.length;
- if(!results.length){body.innerHTML='<tr><td colspan="8">لا توجد نتائج مطابقة للبحث</td></tr>';return;}
+ if(!results.length){
+  body.innerHTML='<tr><td colspan="8">لا توجد نتائج مطابقة للبحث</td></tr>';
+  return;
+ }
  results.forEach(({p,x})=>{
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td>${p==='in'?'وارد':'صادر'}</td><td>${escapeHTML(x.number||'—')}</td><td>${escapeHTML(x.transactionType||'—')}</td><td class="subject">${escapeHTML(x.subject)}</td><td class="entity-cell">${escapeHTML(x.entity)}</td><td dir="ltr">${escapeHTML(x.date)}</td><td>${x.pdf?`<button class="blue" onclick="openPDF('${p}','${escapeHTML(x.id)}')">فتح PDF</button>`:'لا يوجد مرفق'}</td><td><button class="secondary" onclick="showQR('${p}','${escapeHTML(x.id)}')">QR</button> <button class="secondary" onclick="editRecord('${p}','${escapeHTML(x.id)}');go('${p==='in'?'incoming':'outgoing'}')">تعديل</button></td>`;
+  tr.innerHTML=`<td>${p==='in'?'وارد':'صادر'}</td>
+  <td>${escapeHTML(x.number||'—')}</td>
+  <td>${escapeHTML(x.transactionType||'—')}</td>
+  <td class="subject">${escapeHTML(x.subject)}</td>
+  <td class="entity-cell">${escapeHTML(x.entity)}</td>
+  <td dir="ltr">${escapeHTML(x.date)}</td>
+  <td>${x.pdf?`<button class="blue" onclick="openPDF('${p}','${escapeHTML(x.id)}')">فتح PDF</button>`:'لا يوجد مرفق'}</td>
+  <td><button class="secondary" onclick="showQR('${p}','${escapeHTML(x.id)}')">QR</button> <button class="secondary" onclick="editRecord('${p}','${escapeHTML(x.id)}');go('${p==='in'?'incoming':'outgoing'}')">تعديل</button></td>`;
   body.appendChild(tr);
  });
 }
+
+/* =========================================================
+   التقارير والفترات
+========================================================= */
 function periodChanged(){
  const v=document.getElementById('period').value;
  document.getElementById('singleDate').classList.toggle('hidden',v==='all'||v==='custom');
@@ -434,41 +545,73 @@ function periodChanged(){
  document.getElementById('toField').classList.toggle('hidden',v!=='custom');
 }
 function generateReport(){
- const p=document.getElementById('reportType').value,period=document.getElementById('period').value;
+ const p=document.getElementById('reportType').value;
+ const period=document.getElementById('period').value;
  let list=[...records[p]],label='';
  if(period==='all')label='كامل السجل';
  if(period==='custom'){
-  const a=normalizeDigits(document.getElementById('fromDate').value),b=normalizeDigits(document.getElementById('toDate').value);
+  const a=normalizeDigits(document.getElementById('fromDate').value);
+  const b=normalizeDigits(document.getElementById('toDate').value);
   if(!validDate(a)||!validDate(b)||a>b)return alert('تحقق من تاريخ البداية والنهاية.');
-  list=list.filter(x=>x.date>=a&&x.date<=b);label='من '+a+' إلى '+b;
+  list=list.filter(x=>normalizeDigits(x.date)>=a&&normalizeDigits(x.date)<=b);
+  label='من '+a+' إلى '+b;
  }
  if(['day','week','month','year'].includes(period)){
   const d=normalizeDigits(document.getElementById('refDate').value);
   if(!validDate(d))return alert('أدخل التاريخ الهجري بالصيغة 1448/03/07.');
-  if(period==='day'){list=list.filter(x=>x.date===d);label='اليوم '+d;}
-  if(period==='month'){list=list.filter(x=>x.date.slice(0,7)===d.slice(0,7));label='شهر '+d.slice(0,7);}
-  if(period==='year'){list=list.filter(x=>x.date.slice(0,4)===d.slice(0,4));label='عام '+d.slice(0,4);}
+  if(period==='day'){
+   list=list.filter(x=>normalizeDigits(x.date)===d);
+   label='اليوم '+d;
+  }
+  if(period==='month'){
+   list=list.filter(x=>normalizeDigits(x.date).slice(0,7)===d.slice(0,7));
+   label='شهر '+d.slice(0,7);
+  }
+  if(period==='year'){
+   list=list.filter(x=>normalizeDigits(x.date).slice(0,4)===d.slice(0,4));
+   label='عام '+d.slice(0,4);
+  }
   if(period==='week'){
    const start=shiftHijriDays(d,-((hijriDayIndex(d)+6)%7));
    const end=shiftHijriDays(start,6);
-   list=list.filter(x=>x.date>=start&&x.date<=end);label='من '+start+' إلى '+end;
+   list=list.filter(x=>normalizeDigits(x.date)>=start&&normalizeDigits(x.date)<=end);
+   label='من '+start+' إلى '+end;
   }
  }
- list.sort((a,b)=>a.date.localeCompare(b.date));
+ list.sort((a,b)=>normalizeDigits(a.date).localeCompare(normalizeDigits(b.date)));
  document.getElementById('reportTitle').textContent=p==='in'?'تقرير البريد الوارد':'تقرير البريد الصادر';
  document.getElementById('reportPeriod').textContent=label;
  document.getElementById('reportCount').textContent=list.length;
  document.getElementById('reportFiles').textContent=list.filter(x=>x.pdf).length;
- const body=document.querySelector('#reportTable tbody');body.innerHTML='';
- if(!list.length){body.innerHTML='<tr><td colspan="6">لا توجد خطابات في الفترة المحددة</td></tr>';return;}
+ const body=document.querySelector('#reportTable tbody');
+ body.innerHTML='';
+ if(!list.length){
+  body.innerHTML='<tr><td colspan="6">لا توجد خطابات في الفترة المحددة</td></tr>';
+  return;
+ }
  list.forEach((x,i)=>{
   const qrId='reportQR'+i;
   const qrContent=x.reportQRImage?`<img class="qr-uploaded" src="${x.reportQRImage}" alt="رمز QR المرفق">`:`<div class="qr-mini" id="${qrId}"></div>`;
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td>${i+1}</td><td class="subject">${escapeHTML(x.subject)}</td><td class="entity-cell">${escapeHTML(x.entity)}</td><td dir="ltr">${escapeHTML(x.date)}</td><td>${qrContent}<div class="report-actions no-print"><button class="secondary" onclick="document.getElementById('qrFile_${i}').click()">${x.reportQRImage?'تغيير صورة QR':'إضافة صورة QR'}</button>${x.reportQRImage?`<button class="danger" onclick="removeReportQR('${p}','${escapeHTML(x.id)}')">حذف الصورة</button>`:''}<input class="qr-upload-input" id="qrFile_${i}" type="file" accept="image/*" onchange="uploadReportQR(event,'${p}','${escapeHTML(x.id)}')"></div><div class="qr-upload-note">${x.reportQRImage?'صورة QR مضافة للتقرير':'اضغط لإضافة صورة QR من الصور أو الملفات'}</div></td><td>${x.pdf?`<div class="report-actions"><button class="blue no-print" onclick="openPDF('${p}','${escapeHTML(x.id)}')">فتح PDF</button><span class="pdf-label hidden">مرفق PDF</span></div>`:'<span class="small">لا يوجد مرفق</span>'}</td>`;
+  tr.innerHTML=`<td>${i+1}</td>
+  <td class="subject">${escapeHTML(x.subject)}</td>
+  <td class="entity-cell">${escapeHTML(x.entity)}</td>
+  <td dir="ltr">${escapeHTML(x.date)}</td>
+  <td>${qrContent}
+   <div class="report-actions no-print">
+   <button class="secondary" onclick="document.getElementById('qrFile_${i}').click()">${x.reportQRImage?'تغيير صورة QR':'إضافة صورة QR'}</button>
+   ${x.reportQRImage?`<button class="danger" onclick="removeReportQR('${p}','${escapeHTML(x.id)}')">حذف الصورة</button>`:''}
+   <input class="qr-upload-input" id="qrFile_${i}" type="file" accept="image/*" onchange="uploadReportQR(event,'${p}','${escapeHTML(x.id)}')">
+   </div>
+   <div class="qr-upload-note">${x.reportQRImage?'صورة QR مضافة للتقرير':'اضغط لإضافة صورة QR من الصور أو الملفات'}</div>
+  </td>
+  <td>${x.pdf?`<div class="report-actions"><button class="blue no-print" onclick="openPDF('${p}','${escapeHTML(x.id)}')">فتح PDF</button><span class="pdf-label hidden">مرفق PDF</span></div>`:'<span class="small">لا يوجد مرفق</span>'}</td>`;
   body.appendChild(tr);
-  if(!x.reportQRImage&&typeof QRCode!=='undefined')new QRCode(tr.querySelector('#'+qrId),{text:makeQR(x,p),width:75,height:75,correctLevel:QRCode.CorrectLevel.M});
-  else if(!x.reportQRImage)tr.querySelector('#'+qrId).textContent='تعذر إنشاء QR';
+  if(!x.reportQRImage&&typeof QRCode!=='undefined'){
+   new QRCode(tr.querySelector('#'+qrId),{text:makeQR(x,p),width:75,height:75,correctLevel:QRCode.CorrectLevel.M});
+  }else if(!x.reportQRImage){
+   tr.querySelector('#'+qrId).textContent='تعذر إنشاء QR';
+  }
  });
 }
 function hijriDayIndex(s){
@@ -478,46 +621,69 @@ function hijriDayIndex(s){
 function shiftHijriDays(s,n){
  let [y,m,d]=s.split('/').map(Number);
  let count=n;
- while(count>0){d++;if(d>30){d=1;m++;if(m>12){m=1;y++;}}count--;}
- while(count<0){d--;if(d<1){d=30;m--;if(m<1){m=12;y--;}}count++;}
+ while(count>0){
+  d++;
+  if(d>30){d=1;m++;if(m>12){m=1;y++;}}
+  count--;
+ }
+ while(count<0){
+  d--;
+  if(d<1){d=30;m--;if(m<1){m=12;y--;}}
+  count++;
+ }
  return String(y).padStart(4,'0')+'/'+String(m).padStart(2,'0')+'/'+String(d).padStart(2,'0');
 }
 function uploadReportQR(event,p,id){
- const file=event.target.files?.[0];if(!file)return;
+ const file=event.target.files?.[0];
+ if(!file)return;
  if(!file.type.startsWith('image/')){alert('يرجى اختيار صورة QR.');event.target.value='';return;}
  if(file.size>2*1024*1024){alert('حجم الصورة أكبر من 2 ميجابايت.');event.target.value='';return;}
  const reader=new FileReader();
  reader.onload=()=>{
-  const r=records[p].find(x=>x.id===id);if(!r)return;
-  const old=r.reportQRImage;r.reportQRImage=reader.result;
-  if(!persist()){r.reportQRImage=old;return;}generateReport();
+  const r=records[p].find(x=>x.id===id);
+  if(!r)return;
+  const old=r.reportQRImage;
+  r.reportQRImage=reader.result;
+  if(!persist()){r.reportQRImage=old;return;}
+  generateReport();
  };
  reader.onerror=()=>alert('تعذرت قراءة الصورة.');
  reader.readAsDataURL(file);
 }
 function removeReportQR(p,id){
- const r=records[p].find(x=>x.id===id);if(!r||!r.reportQRImage)return;
+ const r=records[p].find(x=>x.id===id);
+ if(!r||!r.reportQRImage)return;
  if(!confirm('هل تريد حذف صورة QR المضافة لهذا الخطاب من التقرير؟'))return;
- const old=r.reportQRImage;r.reportQRImage=null;
- if(!persist()){r.reportQRImage=old;return;}generateReport();
+ const old=r.reportQRImage;
+ r.reportQRImage=null;
+ if(!persist()){r.reportQRImage=old;return;}
+ generateReport();
 }
 
-/* ==================== تحسين استخراج بيانات الترويسة OCR ==================== */
-
+/* =========================================================
+   OCR: تنظيف النص العربي وتوحيد الكلمات
+========================================================= */
 function cleanArabicPDF(text){
- let s=normalizeDigits(text).replace(/\r/g,'\n').replace(/[\u064B-\u065F\u0670ـ]/g,'')
- .replace(/[أإآٱ]/g,'ا').replace(/[：]/g,':').replace(/\u00A0/g,' ');
+ let s=normalizeDigits(text)
+ .replace(/\r/g,'\n')
+ .replace(/[\u064B-\u065F\u0670ـ]/g,'')
+ .replace(/[أإآٱ]/g,'ا')
+ .replace(/[：]/g,':')
+ .replace(/\u00A0/g,' ');
  const fixes=[
- [/ا\s+لاختبارات/g,'الاختبارات'],
- [/االاختبارات/g,'الاختبارات'],
- [/ل\s*ل\s*عام/g,'للعام'],
- [/ب\s+شأن/g,'بشأن'],
- [/ب\s+خصوص/g,'بخصوص'],
- [/ر\s+قم/g,'رقم'],
- [/المعامله/g,'المعاملة']
+  [/ا\s+لاختبارات/g,'الاختبارات'],
+  [/االاختبارات/g,'الاختبارات'],
+  [/ل\s*ل\s*عام/g,'للعام'],
+  [/ب\s+شأن/g,'بشأن'],
+  [/ب\s+خصوص/g,'بخصوص'],
+  [/ر\s+قم/g,'رقم'],
+  [/المعامله/g,'المعاملة'],
+  [/المعاملة\s+/g,'المعاملة ']
  ];
  fixes.forEach(([a,b])=>s=s.replace(a,b));
- return s.replace(/[ \t]+/g,' ').replace(/\s+([،؛:.)])/g,'$1').replace(/\n{2,}/g,'\n').trim();
+ return s.replace(/[ \t]+/g,' ')
+ .replace(/\s+([،؛:.)])/g,'$1')
+ .replace(/\n{2,}/g,'\n').trim();
 }
 function normalizeFieldValue(t){
  return cleanArabicPDF(t).replace(/[|]/g,' ').replace(/\s+/g,' ').trim();
@@ -525,49 +691,70 @@ function normalizeFieldValue(t){
 function normalizeForMatch(t){
  return normalizeText(normalizeFieldValue(t)).replace(/[:：\-]/g,' ').replace(/\s+/g,' ').trim();
 }
+function normalizeOCRToken(s){
+ return normalizeDigits(String(s??''))
+ .replace(/[\u064B-\u065F\u0670ـ]/g,'')
+ .replace(/[أإآٱ]/g,'ا')
+ .replace(/ة/g,'ه')
+ .replace(/ى/g,'ي')
+ .replace(/[^\u0600-\u06FFa-zA-Z0-9]/gi,'')
+ .toLowerCase();
+}
 function isHijriDateValid(y,m,d){
  return y>=1300&&y<=1499&&m>=1&&m<=12&&d>=1&&d<=30;
 }
 function extractHijriDateFromText(text){
- const s=normalizeDigits(text).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
- const matches=[...s.matchAll(/((?:14|13)\d{2})\s*[\/.\-]\s*(\d{1,2})\s*[\/.\-]\s*(\d{1,2})/g)];
+ const s=normalizeDigits(String(text??''));
+ const matches=[...s.matchAll(/((?:14|13)\d{2})\s*[\/.\-\\]\s*(\d{1,2})\s*[\/.\-\\]\s*(\d{1,2})/g)];
  for(const m of matches){
   const y=+m[1],mo=+m[2],d=+m[3];
-  if(isHijriDateValid(y,mo,d))return m[1]+'/'+String(mo).padStart(2,'0')+'/'+String(d).padStart(2,'0');
+  if(isHijriDateValid(y,mo,d)){
+   return m[1]+'/'+String(mo).padStart(2,'0')+'/'+String(d).padStart(2,'0');
+  }
  }
  return '';
 }
 function validBox(b){
  return b&&Number.isFinite(+b.x0)&&Number.isFinite(+b.y0)&&Number.isFinite(+b.x1)&&Number.isFinite(+b.y1)&&b.x1>b.x0&&b.y1>b.y0;
 }
+
+/* =========================================================
+   OCR: تجميع الكلمات في أسطر بحسب إحداثياتها
+========================================================= */
 function getOCRTextRows(ocrData,imageWidth,imageHeight){
  const words=(ocrData.words||[])
  .filter(w=>w.text&&w.text.trim()&&validBox(w.bbox))
  .map(w=>({
   text:w.text.trim(),
-  x:+w.bbox.x0,y:+w.bbox.y0,
-  x1:+w.bbox.x1,y1:+w.bbox.y1,
+  x:+w.bbox.x0,
+  y:+w.bbox.y0,
+  x1:+w.bbox.x1,
+  y1:+w.bbox.y1,
   cx:(+w.bbox.x0 + +w.bbox.x1)/2,
   cy:(+w.bbox.y0 + +w.bbox.y1)/2,
-  confidence:Number(w.confidence??50)
+  confidence:Number(w.confidence??50),
+  block:w.block_num,
+  paragraph:w.par_num,
+  line:w.line_num
  }))
- .filter(w=>w.confidence>=15);
+ .filter(w=>w.confidence>=10);
 
  const rows=[];
  words.sort((a,b)=>a.cy-b.cy);
 
  words.forEach(w=>{
-  let best=null,bestDistance=Infinity;
+  let best=null,bestScore=Infinity;
   rows.forEach(r=>{
    const overlap=Math.min(r.y1,w.y1)-Math.max(r.y0,w.y);
-   const tolerance=Math.max(12,Math.min(r.height,w.y1-w.y)*0.55);
-   const distance=Math.abs(r.cy-w.cy);
-   if((overlap>0||distance<tolerance)&&distance<bestDistance){
-    best=r;bestDistance=distance;
-   }
+   const centerDistance=Math.abs(r.cy-w.cy);
+   const maxHeight=Math.max(r.height,w.y1-w.y,1);
+   const sameLineId=w.line&&r.line&&w.line===r.line&&w.block===r.block&&w.paragraph===r.paragraph;
+   const acceptable=sameLineId||overlap>0||centerDistance<maxHeight*.48;
+   const score=centerDistance/maxHeight;
+   if(acceptable&&score<bestScore){best=r;bestScore=score;}
   });
   if(!best){
-   best={items:[],y0:w.y,y1:w.y1,cy:w.cy,height:w.y1-w.y};
+   best={items:[],y0:w.y,y1:w.y1,cy:w.cy,height:w.y1-w.y,line:w.line,block:w.block,paragraph:w.paragraph};
    rows.push(best);
   }
   best.items.push(w);
@@ -578,14 +765,15 @@ function getOCRTextRows(ocrData,imageWidth,imageHeight){
  });
 
  rows.sort((a,b)=>a.cy-b.cy);
-
  return rows.map(row=>{
   row.items.sort((a,b)=>b.cx-a.cx);
-  const text=normalizeFieldValue(row.items.map(w=>w.text).join(' '));
   return {
    items:row.items,
-   text,
+   text:normalizeFieldValue(row.items.map(w=>w.text).join(' ')),
    y:row.cy,
+   y0:row.y0,
+   y1:row.y1,
+   height:row.height,
    topRatio:row.y0/imageHeight,
    minX:Math.min(...row.items.map(w=>w.x)),
    maxX:Math.max(...row.items.map(w=>w.x1)),
@@ -594,19 +782,15 @@ function getOCRTextRows(ocrData,imageWidth,imageHeight){
   };
  });
 }
-function normalizeOCRToken(s){
- return normalizeFieldValue(s)
- .replace(/[^\u0600-\u06FF0-9]/g,'')
- .replace(/[أإآٱ]/g,'ا')
- .replace(/ة/g,'ه')
- .replace(/ى/g,'ي')
- .toLowerCase();
-}
 function headerRows(rows){
- return rows.filter(r=>r.topRatio>=0&&r.topRatio<=0.40);
+ return rows.filter(r=>r.topRatio>=0&&r.topRatio<=0.45);
 }
+
+/* =========================================================
+   OCR: تحديد عناوين الحقول في الترويسة
+========================================================= */
 function fieldAliases(k){
- if(k==='number')return ['رقم المعاملة','رقم المعامله','رقم الخطاب'];
+ if(k==='number')return ['رقم المعاملة','رقم المعامله','رقم الخطاب','رقم'];
  if(k==='date')return ['تاريخ المعاملة','تاريخ المعامله','تاريخ الخطاب'];
  if(k==='type')return ['نوع المعاملة','نوع المعامله'];
  if(k==='subject')return ['موضوع الخطاب','الموضوع'];
@@ -617,24 +801,12 @@ function findLabelInRow(row,k){
  const words=row.items;
  for(let start=0;start<words.length;start++){
   let combined='';
-  for(let end=start;end<Math.min(words.length,start+6);end++){
+  for(let end=start;end<Math.min(words.length,start+7);end++){
    combined+=normalizeOCRToken(words[end].text);
    if(aliases.includes(combined)){
-    return {
-     row,
-     start,
-     end,
-     labelWords:words.slice(start,end+1),
-     labelText:combined
-    };
+    return {row,start,end,labelWords:words.slice(start,end+1),labelText:combined};
    }
    if(!aliases.some(a=>a.startsWith(combined)))break;
-  }
- }
- const rowText=normalizeOCRToken(row.text);
- for(const alias of aliases){
-  if(rowText.includes(alias)){
-   return {row,start:-1,end:-1,labelWords:[],labelText:alias};
   }
  }
  return null;
@@ -654,79 +826,111 @@ function wordGap(a,b){
  if(b.x1<=a.x)return a.x-b.x1;
  return 0;
 }
-function isValueWord(word,k){
- const t=normalizeDigits(word.text).trim();
- if(k==='number')return /^[0-9]{2,25}$/.test(t);
- if(k==='date')return /^(?:13|14)\d{2}[\/.\-]?\d{1,2}[\/.\-]?\d{1,2}$/.test(t)||/^(?:13|14)\d{2}$/.test(t)||/^\d{1,2}[\/.\-]\d{1,2}$/.test(t);
- return !/^(رقم|المعاملة|المعامله|الخطاب|التاريخ|نوع|الموضوع|موضوع)$/.test(normalizeOCRToken(t));
+function labelBounds(label){
+ const words=label.labelWords||[];
+ if(!words.length)return {x0:label.row.minX,x1:label.row.maxX,y:label.row.y};
+ return {
+  x0:Math.min(...words.map(w=>w.x)),
+  x1:Math.max(...words.map(w=>w.x1)),
+  y:words.reduce((s,w)=>s+w.cy,0)/words.length
+ };
 }
-function candidateWordsForLabel(label,k,labels){
+function isMetadataText(text){
+ const t=normalizeOCRToken(text);
+ const all=['رقم المعاملة','رقم المعامله','رقم الخطاب','تاريخ المعاملة','تاريخ المعامله','تاريخ الخطاب','نوع المعاملة','نوع المعامله','موضوع الخطاب','الموضوع'];
+ return all.some(a=>t.includes(normalizeOCRToken(a)));
+}
+function splitCandidateSides(label,labels){
  const row=label.row;
- const labelWords=label.labelWords||[];
- let lx0,lx1,ly;
- if(labelWords.length){
-  lx0=Math.min(...labelWords.map(w=>w.x));
-  lx1=Math.max(...labelWords.map(w=>w.x1));
-  ly=labelWords.reduce((s,w)=>s+w.cy,0)/labelWords.length;
- }else{
-  lx0=row.minX;lx1=row.maxX;ly=row.y;
- }
- const sameRow=row.items.filter(w=>!labelWords.includes(w));
- const nearbyLabels=labels.filter(x=>x!==label&&x.row===row);
- const candidates=sameRow.map(w=>{
-  const gap=wordGap({x:lx0,x1:lx1},w);
-  const vertical=Math.abs(w.cy-ly);
-  const blocked=nearbyLabels.some(other=>{
-   return other.labelWords.includes(w);
-  });
-  return {word:w,gap,vertical,blocked};
- }).filter(x=>!x.blocked&&x.gap<Math.max(130,row.pageWidth*.12)&&x.vertical<Math.max(28,row.height*1.8));
+ const bounds=labelBounds(label);
+ const otherLabels=labels.filter(x=>x!==label&&x.row===row);
+ const excluded=new Set(label.labelWords||[]);
+ const maxGap=Math.max(85,row.pageWidth*.075);
+ const maxVertical=Math.max(24,row.height*1.25);
+ const candidates=row.items.filter(w=>!excluded.has(w));
+ const result={left:[],right:[]};
 
- candidates.sort((a,b)=>a.gap-b.gap);
+ candidates.forEach(w=>{
+  const vertical=Math.abs(w.cy-bounds.y);
+  if(vertical>maxVertical)return;
+  const gap=wordGap(bounds,w);
+  if(gap>maxGap)return;
+  if(otherLabels.some(other=>(other.labelWords||[]).includes(w)))return;
+  if(w.x1<=bounds.x0)result.left.push({word:w,gap});
+  else if(w.x>=bounds.x1)result.right.push({word:w,gap});
+ });
 
- // لا نأخذ قيمة من الجهة الأخرى إذا كان هناك حقل آخر يفصل بينهما.
- return candidates;
+ Object.keys(result).forEach(side=>{
+  result[side].sort((a,b)=>b.word.cx-a.word.cx);
+ });
+ return result;
 }
-function collectAdjacentValue(label,k,labels){
- const candidates=candidateWordsForLabel(label,k,labels);
- if(!candidates.length)return '';
+function isNumberCandidate(t){
+ const s=normalizeDigits(String(t??'')).replace(/[،,]/g,'');
+ if(!/^\d{2,25}$/.test(s))return false;
+ if(/^(13|14)\d{2}(0[1-9]|1[0-2])([0-2]\d|30)$/.test(s))return false;
+ return true;
+}
+function isDateCandidate(t){
+ const s=normalizeDigits(String(t??'')).replace(/\s/g,'');
+ return /^(?:13|14)\d{2}[\/.\-\\]\d{1,2}[\/.\-\\]\d{1,2}$/.test(s)||
+ /^(?:13|14)\d{2}$/.test(s)||
+ /^\d{1,2}[\/.\-]\d{1,2}$/.test(s);
+}
+function collectSideWords(sideItems,k){
+ if(!sideItems.length)return '';
+ const selected=[];
+ let previousGap=sideItems[0].gap;
+ for(let i=0;i<sideItems.length;i++){
+  const item=sideItems[i];
+  const w=item.word;
+  if(i>0&&item.gap-previousGap>Math.max(45,w.x1-w.x))break;
+  if(k==='number'&&!isNumberCandidate(w.text)){
+   if(selected.length)break;
+   continue;
+  }
+  if(k==='date'&&!isDateCandidate(w.text)){
+   if(selected.length)break;
+   continue;
+  }
+  if(k==='type'||k==='subject'){
+   if(isMetadataText(w.text))break;
+   if(/^(رقم|التاريخ|تاريخ|نوع|الموضوع|موضوع|المعاملة|المعامله)$/i.test(normalizeOCRToken(w.text)))break;
+  }
+  selected.push(w);
+  previousGap=item.gap;
+  if((k==='number'||k==='date')&&selected.length>=4)break;
+  if((k==='type'||k==='subject')&&selected.length>=9)break;
+ }
+ return selected.map(w=>w.text).join(' ');
+}
+function candidateValueForLabel(label,k,labels){
+ const sides=splitCandidateSides(label,labels);
+ const left=collectSideWords(sides.left,k);
+ const right=collectSideWords(sides.right,k);
 
- const numeric=candidates.filter(x=>isValueWord(x.word,k));
  if(k==='number'){
-  const valid=numeric.filter(x=>/^[0-9]{2,25}$/.test(normalizeDigits(x.word.text)));
-  if(!valid.length)return '';
-  valid.sort((a,b)=>a.gap-b.gap);
-  return normalizeDigits(valid[0].word.text);
+  const candidates=[left,right].flatMap(s=>s.split(/\s+/)).filter(isNumberCandidate);
+  return candidates.length===1?normalizeDigits(candidates[0]):'';
  }
  if(k==='date'){
-  const ordered=numeric.sort((a,b)=>a.gap-b.gap);
-  for(const item of ordered){
-   const date=extractHijriDateFromText(item.word.text);
+  for(const text of [left,right]){
+   const date=extractHijriDateFromText(text);
    if(date)return date;
   }
-  const nearby=ordered.slice(0,4).map(x=>x.word.text).join(' ');
-  const date=extractHijriDateFromText(nearby);
-  if(date)return date;
   return '';
  }
-
- const nearest=candidates[0];
- if(!nearest)return '';
- const anchor=nearest.word;
- const selected=candidates
- .filter(x=>x.gap<=nearest.gap+Math.max(65,label.row.pageWidth*.035))
- .sort((a,b)=>b.word.cx-a.word.cx)
- .map(x=>x.word.text);
-
- let text=selected.join(' ');
- text=cleanLabelValue(text,k);
- if(k==='subject'){
-  text=text.split(/السلام عليكم|سعادة|المرفقات|رقم المعاملة|تاريخ المعاملة|نوع المعاملة/i)[0];
-  text=text.trim();
-  return text.length>=3&&text.length<=220?text:'';
- }
- text=text.trim();
- return text.length>=2&&text.length<=90?text:'';
+ const values=[left,right].filter(Boolean).map(s=>cleanLabelValue(s,k)).filter(Boolean);
+ if(!values.length)return '';
+ values.sort((a,b)=>{
+  const minLength=k==='subject'?3:2;
+  const aValid=a.length>=minLength,bValid=b.length>=minLength;
+  if(aValid!==bValid)return aValid?-1:1;
+  return b.length-a.length;
+ });
+ const value=values[0]||'';
+ if(k==='subject')return value.length>=3&&value.length<=220?value:'';
+ return value.length>=2&&value.length<=90?value:'';
 }
 function cleanLabelValue(t,k){
  let s=normalizeFieldValue(t);
@@ -739,27 +943,35 @@ function cleanLabelValue(t,k){
   const re=new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g');
   s=s.replace(re,' ');
  });
- return s.replace(/^[\s:：\-–—]+/,'').replace(/\s+/g,' ').trim();
+ s=s.replace(/^[\s:：\-–—|]+/,'').replace(/\s+/g,' ').trim();
+ if(k==='subject'){
+  s=s.split(/السلام عليكم|سعادة|المرفقات|رقم المعاملة|تاريخ المعاملة|نوع المعاملة/i)[0].trim();
+ }
+ return s;
 }
 function findFieldValue(rows,k,labels){
  const found=labels.filter(x=>x.key===k);
  for(const label of found){
-  const value=collectAdjacentValue(label,k,labels);
+  const value=candidateValueForLabel(label,k,labels);
   if(value)return value;
  }
  return '';
 }
+
+/* =========================================================
+   OCR: استخراج الجهة من أعلى يمين الترويسة
+========================================================= */
 function extractEntityFromHeader(rows){
  const list=headerRows(rows);
  const excluded=/وزارة التعليم|الإدارة العامة للتعليم بمنطقة الجوف|المملكة العربية السعودية|مدرسة عبدالله بن مسعود|رقم المعاملة|رقم الخطاب|تاريخ المعاملة|نوع المعاملة|الموضوع|موضوع الخطاب/i;
  const selected=[];
- const patterns=/الشؤون|شؤون|قسم|إدارة|ادارة|أداء التعليم|اداء التعليم|وكالة|وحدة|مكتب|النشاط|الإشراف|الاشراف|التوجيه|المسؤولية|المجتمعية|العمل التطوعي|تعليمية|التعليمية/;
+ const patterns=/الشؤون|شؤون|قسم|إدارة|ادارة|أداء التعليم|اداء التعليم|وكالة|وحدة|مكتب|النشاط|الإشراف|الاشراف|التوجيه|المسؤولية|المجتمعية|العمل التطوعي|تعليمية|التعليمية|الموارد البشرية|الخدمات|المدرسية|الطلاب|الطالبات/;
  for(const r of list){
-  if(r.topRatio>.38)continue;
+  if(r.topRatio>.42)continue;
   const rightWords=r.items.filter(w=>w.cx>=r.pageWidth*.48);
   if(!rightWords.length)continue;
   const line=normalizeFieldValue(rightWords.sort((a,b)=>b.cx-a.cx).map(w=>w.text).join(' '));
-  if(!line||excluded.test(line)||line.length<3||line.length>100)continue;
+  if(!line||excluded.test(line)||line.length<3||line.length>120)continue;
   if(/^\d+$/.test(normalizeDigits(line)))continue;
   if(patterns.test(line)){
    if(!selected.some(x=>normalizeForMatch(x)===normalizeForMatch(line)))selected.push(line);
@@ -777,19 +989,27 @@ function analyzeHeader(rows){
   subject:findFieldValue(rows,'subject',labels)
  };
 }
+
+/* =========================================================
+   تشغيل OCR على الصفحة الأولى فقط
+========================================================= */
 async function runOCRPageOne(pdf,status){
  if(typeof Tesseract==='undefined')throw new Error('مكتبة OCR غير متاحة.');
  const page=await pdf.getPage(1);
- const viewport=page.getViewport({scale:2.5});
+ const viewport=page.getViewport({scale:2.7});
  const canvas=document.createElement('canvas');
  canvas.width=Math.round(viewport.width);
  canvas.height=Math.round(viewport.height);
  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+ if(!ctx)throw new Error('تعذر تجهيز مساحة معالجة الصورة.');
  await page.render({canvasContext:ctx,viewport}).promise;
+
  const worker=await Tesseract.createWorker('ara+eng',1,{
   logger:m=>{
    if(m.status==='recognizing text'){
     status.textContent='التعرف الضوئي على الصفحة الأولى... '+Math.round((m.progress||0)*100)+'%';
+   }else if(m.status){
+    status.textContent='جاري تجهيز محرك التعرف الضوئي: '+m.status;
    }
   }
  });
@@ -831,12 +1051,15 @@ function fillExtractedFields(p,data){
  Object.keys(fields).forEach(k=>{
   const input=document.getElementById(ids[k]);
   if(fields[k]&&input){
-   if(input.value.trim())notOverwritten.push(names[k]);
-   else{
+   if(input.value.trim()){
+    notOverwritten.push(names[k]);
+   }else{
     input.value=fields[k];
     found.push(names[k]);
    }
-  }else missing.push(names[k]);
+  }else{
+   missing.push(names[k]);
+  }
  });
  const status=document.getElementById(p+'ExtractStatus');
  status.className='extract-status';
@@ -847,65 +1070,108 @@ function fillExtractedFields(p,data){
  '<br>لم يتم العثور على: '+escapeHTML(missing.join('، ')||'لا توجد حقول مفقودة')+
  '<br><b>تنبيه:</b> راجع البيانات مقابل الخطاب الأصلي قبل الحفظ. لم يتم حفظ أي بيانات تلقائيًا.';
 }
+
+/* =========================================================
+   تشغيل عملية الاستخراج والتحقق من الملف
+========================================================= */
 async function extractPdf(p){
+ if(ocrBusy){alert('هناك عملية استخراج قيد التنفيذ. انتظر حتى تنتهي.');return;}
  const input=document.getElementById(p+'Pdf');
  const file=input.files?.[0];
  const status=document.getElementById(p+'ExtractStatus');
  if(!file)return alert('اختر ملف PDF أولاً.');
  if(file.type!=='application/pdf'&&!file.name.toLowerCase().endsWith('.pdf'))return alert('يرجى اختيار ملف PDF فقط.');
- if(!confirm('سيتم تشغيل التعرف الضوئي OCR على الصفحة الأولى فقط من ملف PDF.\n\nتتطلب العملية اتصالًا بالإنترنت وقد تستغرق بعض الوقت. ستظهر النتائج للمراجعة ولن يتم حفظها تلقائيًا.\n\nهل تريد المتابعة؟'))return;
+ if(file.size>20*1024*1024&&!confirm('حجم الملف أكبر من 20 ميجابايت. قد تستغرق المعالجة وقتًا أطول. هل تريد المتابعة؟'))return;
+ if(!confirm('سيتم تشغيل التعرف الضوئي OCR على الصفحة الأولى فقط من ملف PDF.\n\nتتطلب العملية اتصالًا بالإنترنت لتنزيل محرك التعرف عند الحاجة، وقد تستغرق بعض الوقت. ستظهر النتائج للمراجعة ولن يتم حفظها تلقائيًا.\n\nهل تريد المتابعة؟'))return;
+
+ ocrBusy=true;
+ const button=input.parentElement.querySelector('button[onclick*="extractPdf"]');
+ if(button)button.disabled=true;
  status.className='extract-status';
  status.textContent='جارٍ تجهيز ملف PDF...';
+
  try{
   if(typeof pdfjsLib==='undefined')throw new Error('مكتبة PDF غير متاحة.');
   pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   const buffer=await file.arrayBuffer();
   const pdf=await pdfjsLib.getDocument({data:new Uint8Array(buffer)}).promise;
   if(!pdf.numPages)throw new Error('الملف لا يحتوي على صفحات.');
-  status.textContent='جارٍ تشغيل OCR على الصفحة الأولى فقط...';
+  status.textContent='تم فتح الملف. جارٍ تشغيل OCR على الصفحة الأولى فقط...';
   const result=await runOCRPageOne(pdf,status);
   const data=analyzeOCRText(result);
   fillExtractedFields(p,data);
   status.scrollIntoView({behavior:'smooth',block:'nearest'});
  }catch(e){
-  console.error(e);
-  status.className='extract-status';
-  status.textContent='تعذر استخراج البيانات. يمكنك إدخالها يدويًا أو تجربة ملف أوضح.';
+  console.error('OCR error:',e);
+  status.className='extract-status error';
+  status.textContent='تعذر استخراج البيانات. تحقق من اتصال الإنترنت، وجودة الملف، وأن ملف PDF غير محمي أو تالف. يمكنك إدخال البيانات يدويًا.';
   alert('تعذر قراءة ملف PDF أو تشغيل OCR. تحقق من اتصال الإنترنت، وتأكد من أن الملف غير محمي أو تالف، ثم حاول مرة أخرى.');
+ }finally{
+  ocrBusy=false;
+  if(button)button.disabled=false;
  }
 }
 
-/* النسخ الاحتياطي والاستعادة */
+/* =========================================================
+   النسخ الاحتياطي والاستعادة
+========================================================= */
 function exportBackup(){
  try{
   const blob=new Blob([JSON.stringify(records)],{type:'application/json'});
-  const url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download='نسخة-سجل-البريد.json';document.body.appendChild(a);a.click();a.remove();
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='نسخة-سجل-البريد.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),1500);
- }catch(e){alert('تعذر إنشاء النسخة الاحتياطية.');}
+ }catch(e){
+  console.error(e);
+  alert('تعذر إنشاء النسخة الاحتياطية.');
+ }
 }
 function importBackup(e){
- const file=e.target.files?.[0];if(!file)return;
+ const file=e.target.files?.[0];
+ if(!file)return;
  const r=new FileReader();
  r.onload=()=>{
+  const previous=records;
   try{
    const x=JSON.parse(r.result);
    if(!x||!Array.isArray(x.in)||!Array.isArray(x.out))throw Error('صيغة غير صحيحة');
-   if(!confirm('سيتم استبدال السجلات الحالية. هل تريد المتابعة؟'))return;
-   const previous=records;records=x;
-   records.in.forEach(migrateRecord);records.out.forEach(migrateRecord);
-   if(!persist()){records=previous;return;}
-   renderAll();alert('تمت استعادة النسخة بنجاح.');
-  }catch(err){alert('ملف النسخة الاحتياطية غير صالح.');}
-  finally{e.target.value='';}
+   if(!confirm('سيتم استبدال السجلات الحالية بالنسخة المختارة. تأكد من تصدير نسخة احتياطية من بياناتك الحالية أولًا. هل تريد المتابعة؟'))return;
+   const next={in:x.in,out:x.out};
+   next.in.forEach(migrateRecord);
+   next.out.forEach(migrateRecord);
+   records=next;
+   if(!persist()){
+    records=previous;
+    return;
+   }
+   renderAll();
+   alert('تمت استعادة النسخة بنجاح.');
+  }catch(err){
+   console.error(err);
+   records=previous;
+   alert('ملف النسخة الاحتياطية غير صالح أو لا يتوافق مع بنية المنصة.');
+  }finally{
+   e.target.value='';
+  }
  };
- r.onerror=()=>{alert('تعذرت قراءة ملف النسخة.');e.target.value='';};
+ r.onerror=()=>{
+  alert('تعذرت قراءة ملف النسخة.');
+  e.target.value='';
+ };
  r.readAsText(file);
 }
 
-/* قراءة بيانات QR */
+/* =========================================================
+   قراءة بيانات QR
+========================================================= */
 function readQR(){
- const match=location.hash.match(/#record=(.+)$/);if(!match)return;
+ const match=location.hash.match(/#record=(.+)$/);
+ if(!match)return;
  try{
   const encoded=decodeURIComponent(match[1]);
   const data=JSON.parse(decodeURIComponent(escape(atob(encoded))));
@@ -918,9 +1184,16 @@ function readQR(){
   <p><b>موضوع الخطاب:</b> ${escapeHTML(data.subject)}</p>
   <p><b>الجهة:</b> ${escapeHTML(data.entity)}</p>
   <p><b>التاريخ:</b> ${escapeHTML(data.date)}</p>
-  <div class="notice">هذه بيانات الخطاب المشفرة داخل رمز QR. لا يتضمن الرمز ملف PDF.</div>`;
- }catch(e){alert('تعذر قراءة بيانات رمز QR.');}
+  <div class="notice">هذه بيانات الخطاب المشفرة داخل رمز QR. لا يتضمن الرمز ملف PDF، ويعرض البيانات المضمنة في الرمز فقط.</div>`;
+ }catch(e){
+  console.error(e);
+  alert('تعذر قراءة بيانات رمز QR.');
+ }
 }
+
+/* =========================================================
+   أحداث اختيار المرفقات وبدء التشغيل
+========================================================= */
 document.getElementById('inPdf').addEventListener('change',function(){
  document.getElementById('inPdfStatus').textContent=this.files[0]?'الملف المختار: '+this.files[0].name:'';
  document.getElementById('inExtractStatus').textContent='';
@@ -929,7 +1202,10 @@ document.getElementById('outPdf').addEventListener('change',function(){
  document.getElementById('outPdfStatus').textContent=this.files[0]?'الملف المختار: '+this.files[0].name:'';
  document.getElementById('outExtractStatus').textContent='';
 });
-load();periodChanged();readQR();
+
+load();
+periodChanged();
+readQR();
 </script>
 </body>
 </html>
