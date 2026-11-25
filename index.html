@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -83,14 +82,20 @@ td.subject,td.entity-cell{direction:rtl;text-align:right;white-space:normal;over
 #reportTable td{white-space:normal;overflow-wrap:anywhere;line-height:1.8}
 #reportTable td:nth-child(4){direction:ltr;white-space:nowrap}
 #reportTable td:nth-child(2),#reportTable td:nth-child(3){direction:rtl;text-align:right;unicode-bidi:plaintext}
+.print-only-head{display:none}
 @media(max-width:600px){.container{padding:8px}.panel{padding:13px}header h2{font-size:19px}.approval-area{grid-template-columns:1fr}}
 @media print{
 @page{size:A4 portrait;margin:10mm}
 body{background:white}
-header,nav,.no-print,footer,.modal{display:none!important}
+header,nav,.no-print,footer,#pdfModal{display:none!important}
+body.printing-qr main{display:none!important}
+body.printing-qr #qrModal{position:static;background:white;padding:0;display:block!important}
+body.printing-qr #qrModal .modal-card{box-shadow:none;border:0;width:100%;max-height:none}
+body.printing-qr #qrModal .actions{display:none!important}
+body:not(.printing-qr) .modal{display:none!important}
 .container{max-width:none;margin:0;padding:0}
 .panel{box-shadow:none;border:0;padding:5px}
-.report-head{display:block!important}
+.report-head,.print-only-head{display:block!important}
 table{min-width:0!important;width:100%}
 th,td{font-size:10px;padding:5px 3px}
 .report-head h2{font-size:19px}
@@ -239,14 +244,16 @@ th,td{font-size:10px;padding:5px 3px}
 <p class="notice">تنبيه: البيانات محفوظة محليًا في هذا المتصفح والجهاز. النسخة الاحتياطية ضرورية عند تغيير الجهاز أو المتصفح أو مسح بياناته. الاستعادة تستبدل السجلات الحالية بعد التأكيد.</p>
 </div></section>
 
-<section id="recordView" class="page hidden"><div class="panel"><h3>تفاصيل الخطاب</h3><div id="recordDetails"></div>
-<div class="actions no-print"><button class="primary" onclick="window.print()">طباعة التفاصيل</button><button class="secondary" onclick="showPage('home')">الرئيسية</button></div>
+<section id="recordView" class="page hidden"><div class="panel">
+<div class="report-head print-only-head"><div>وزارة التعليم</div><div>الإدارة العامة للتعليم بمنطقة الجوف</div><div>مدرسة عبدالله بن مسعود</div><h2>بيانات معاملة رسمية</h2></div>
+<h3>تفاصيل الخطاب</h3><div id="recordDetails"></div>
+<div class="actions no-print"><button class="primary" onclick="window.print()">طباعة التفاصيل</button><button class="secondary" onclick="exitRecordView()">الرئيسية</button></div>
 </div></section>
 </main>
 
 <footer>إعداد وتصميم: مساعد إداري / خالد شاقي الرويلي</footer>
 
-<div id="qrModal" class="modal hidden"><div class="modal-card"><h3>رمز QR للخطاب</h3><div id="qrDisplay"></div><div id="qrCaption" class="small"></div><div class="actions" style="justify-content:center"><button class="primary" onclick="window.print()">طباعة QR</button><button class="secondary" onclick="closeQR()">إغلاق</button></div></div></div>
+<div id="qrModal" class="modal hidden"><div class="modal-card"><h3>رمز QR للخطاب</h3><div id="qrDisplay"></div><div id="qrCaption" class="small"></div><div class="actions" style="justify-content:center"><button class="primary" onclick="printQRModal()">طباعة QR</button><button class="secondary" onclick="closeQR()">إغلاق</button></div></div></div>
 
 <div id="pdfModal" class="modal hidden"><div class="modal-card" style="width:min(100%,850px)"><h3 id="pdfTitle">عرض ملف PDF</h3><iframe id="pdfFrame" class="pdf-frame" title="ملف PDF"></iframe><div class="actions" style="justify-content:center"><a id="pdfOpenLink" class="btn primary" target="_blank" rel="noopener">فتح PDF في صفحة مستقلة</a><a id="pdfDownloadLink" class="btn secondary" download="خطاب.pdf">تنزيل PDF</a><button class="danger" onclick="closePDF()">إغلاق</button></div><p class="small">إذا لم يظهر الملف داخل النافذة، استخدم زر «فتح PDF في صفحة مستقلة».</p></div></div>
 
@@ -319,6 +326,12 @@ function showPage(id,btn){
  if(id==='home'){updateHome();globalSearch();}
  if(id==='incoming')renderTable('in');
  if(id==='outgoing')renderTable('out');
+}
+function exitRecordView(){
+ if(location.hash.startsWith('#record=')){
+  history.replaceState(null,'',location.pathname+location.search);
+ }
+ go('home');
 }
 function validDate(s){
  s=normalizeDigits(s);
@@ -417,7 +430,16 @@ function showQR(p,id){
  document.getElementById('qrCaption').textContent=x.subject+' — '+x.date;
  document.getElementById('qrModal').classList.remove('hidden');
 }
-function closeQR(){document.getElementById('qrModal').classList.add('hidden');}
+function printQRModal(){
+ document.body.classList.add('printing-qr');
+ window.print();
+ setTimeout(()=>document.body.classList.remove('printing-qr'),500);
+}
+window.addEventListener('afterprint',()=>document.body.classList.remove('printing-qr'));
+function closeQR(){
+ document.body.classList.remove('printing-qr');
+ document.getElementById('qrModal').classList.add('hidden');
+}
 function dataURLToBlob(url){
  const parts=String(url).split(',');
  if(parts.length<2)throw new Error('صيغة المرفق غير صحيحة');
@@ -590,7 +612,8 @@ function generateReport(){
   return;
  }
  list.forEach((x,i)=>{
-  const qrId='reportQR'+i;
+  const qrId='reportQR_'+escapeHTML(x.id);
+  const fileInputId='qrFile_'+escapeHTML(x.id);
   const qrContent=x.reportQRImage?`<img class="qr-uploaded" src="${x.reportQRImage}" alt="رمز QR المرفق">`:`<div class="qr-mini" id="${qrId}"></div>`;
   const tr=document.createElement('tr');
   tr.innerHTML=`<td>${i+1}</td>
@@ -599,18 +622,18 @@ function generateReport(){
   <td dir="ltr">${escapeHTML(x.date)}</td>
   <td>${qrContent}
    <div class="report-actions no-print">
-   <button class="secondary" onclick="document.getElementById('qrFile_${i}').click()">${x.reportQRImage?'تغيير صورة QR':'إضافة صورة QR'}</button>
+   <button class="secondary" onclick="document.getElementById('${fileInputId}').click()">${x.reportQRImage?'تغيير صورة QR':'إضافة صورة QR'}</button>
    ${x.reportQRImage?`<button class="danger" onclick="removeReportQR('${p}','${escapeHTML(x.id)}')">حذف الصورة</button>`:''}
-   <input class="qr-upload-input" id="qrFile_${i}" type="file" accept="image/*" onchange="uploadReportQR(event,'${p}','${escapeHTML(x.id)}')">
+   <input class="qr-upload-input" id="${fileInputId}" type="file" accept="image/*" onchange="uploadReportQR(event,'${p}','${escapeHTML(x.id)}')">
    </div>
    <div class="qr-upload-note">${x.reportQRImage?'صورة QR مضافة للتقرير':'اضغط لإضافة صورة QR من الصور أو الملفات'}</div>
   </td>
   <td>${x.pdf?`<div class="report-actions"><button class="blue no-print" onclick="openPDF('${p}','${escapeHTML(x.id)}')">فتح PDF</button><span class="pdf-label hidden">مرفق PDF</span></div>`:'<span class="small">لا يوجد مرفق</span>'}</td>`;
   body.appendChild(tr);
   if(!x.reportQRImage&&typeof QRCode!=='undefined'){
-   new QRCode(tr.querySelector('#'+qrId),{text:makeQR(x,p),width:75,height:75,correctLevel:QRCode.CorrectLevel.M});
+   new QRCode(tr.querySelector('.qr-mini'),{text:makeQR(x,p),width:75,height:75,correctLevel:QRCode.CorrectLevel.M});
   }else if(!x.reportQRImage){
-   tr.querySelector('#'+qrId).textContent='تعذر إنشاء QR';
+   tr.querySelector('.qr-mini').textContent='تعذر إنشاء QR';
   }
  });
 }
@@ -845,7 +868,7 @@ function splitCandidateSides(label,labels){
  const bounds=labelBounds(label);
  const otherLabels=labels.filter(x=>x!==label&&x.row===row);
  const excluded=new Set(label.labelWords||[]);
- const maxGap=Math.max(85,row.pageWidth*.075);
+ const maxGap=Math.max(130,row.pageWidth*.12);
  const maxVertical=Math.max(24,row.height*1.25);
  const candidates=row.items.filter(w=>!excluded.has(w));
  const result={left:[],right:[]};
@@ -866,9 +889,9 @@ function splitCandidateSides(label,labels){
  return result;
 }
 function isNumberCandidate(t){
- const s=normalizeDigits(String(t??'')).replace(/[،,]/g,'');
- if(!/^\d{2,25}$/.test(s))return false;
- if(/^(13|14)\d{2}(0[1-9]|1[0-2])([0-2]\d|30)$/.test(s))return false;
+ const s=normalizeDigits(String(t??'')).replace(/[،,:]/g,'').trim();
+ if(!/^[\d\/\-]{1,25}$/.test(s)||!/\d/.test(s))return false;
+ if(/^(13|14)\d{2}[\/\-]?(0[1-9]|1[0-2])[\/\-]?([0-2]\d|30)$/.test(s))return false;
  return true;
 }
 function isDateCandidate(t){
@@ -900,7 +923,7 @@ function collectSideWords(sideItems,k){
   selected.push(w);
   previousGap=item.gap;
   if((k==='number'||k==='date')&&selected.length>=4)break;
-  if((k==='type'||k==='subject')&&selected.length>=9)break;
+  if((k==='type'||k==='subject')&&selected.length>=12)break;
  }
  return selected.map(w=>w.text).join(' ');
 }
@@ -911,7 +934,7 @@ function candidateValueForLabel(label,k,labels){
 
  if(k==='number'){
   const candidates=[left,right].flatMap(s=>s.split(/\s+/)).filter(isNumberCandidate);
-  return candidates.length===1?normalizeDigits(candidates[0]):'';
+  return candidates.length>=1?normalizeDigits(candidates[0]):'';
  }
  if(k==='date'){
   for(const text of [left,right]){
@@ -981,10 +1004,17 @@ function extractEntityFromHeader(rows){
 }
 function analyzeHeader(rows){
  const labels=locateAllLabels(rows);
+ let date=findFieldValue(rows,'date',labels);
+ if(!date){
+  for(const r of headerRows(rows)){
+   const fallback=extractHijriDateFromText(r.text);
+   if(fallback){date=fallback;break;}
+  }
+ }
  return {
   number:findFieldValue(rows,'number',labels),
   transactionType:findFieldValue(rows,'type',labels),
-  date:findFieldValue(rows,'date',labels),
+  date,
   entity:extractEntityFromHeader(rows),
   subject:findFieldValue(rows,'subject',labels)
  };
